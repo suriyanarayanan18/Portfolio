@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Streaming Platform User Analysis — Project Summary</title>
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#0b0b0b;
+      --muted:#5b5b5b;
+      --line:#e9e9e9;
+      --chip:#f6f6f6;
+      --shadow: 0 10px 30px rgba(0,0,0,.06);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text)}
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI,
+      Roboto, Arial, "Helvetica Neue", sans-serif;
+      line-height:1.55;
+    }
+    a{color:inherit}
+
+    .wrap{max-width:980px;margin:0 auto;padding:28px 18px 56px}
+
+    .topbar{
+      display:flex;align-items:center;gap:12px;
+      padding:10px 0 18px;border-bottom:1px solid var(--line);
+    }
+    .topbar a{
+      text-decoration:none;color:var(--muted);
+      font-weight:600;font-size:14px;
+    }
+    .topbar a:hover{color:var(--text);text-decoration:underline}
+
+    h1{
+      font-family: ui-serif, Georgia, "Times New Roman", serif;
+      font-size:52px;letter-spacing:-.02em;
+      margin:28px 0 10px;
+    }
+    .sub{
+      max-width:78ch;
+      color:var(--muted);
+      margin:0 0 18px;
+      font-size:16px;
+    }
+
+    .chips{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 30px}
+    .chip{
+      background:var(--chip);
+      border:1px solid var(--line);
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      color:#2a2a2a;
+    }
+
+    .divider{
+      height:14px;
+      margin:26px 0;
+      background:
+        radial-gradient(closest-side, rgba(0,0,0,.14), rgba(0,0,0,0))
+        center/65% 10px no-repeat;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:24px;
+    }
+    @media (max-width: 860px){
+      .grid{grid-template-columns:1fr}
+      h1{font-size:44px}
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow: var(--shadow);
+      background:#fff;
+    }
+    .card h2{
+      margin:0 0 10px;
+      font-size:16px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .card p{
+      margin:0 0 10px;
+      color:var(--muted);
+      font-size:15px;
+    }
+    .list{
+      margin:10px 0 0;
+      padding-left:18px;
+      color:var(--muted);
+      font-size:15px;
+    }
+    .list li{margin:6px 0}
+
+    .kpi{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+    }
+    .label{color:var(--muted);font-size:13px}
+    .value{font-weight:700;font-size:13px}
+
+    .footer-actions{
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin-top:34px;
+    }
+    .btn{
+      min-width:190px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:12px 16px;
+      border-radius:0;
+      border:1px solid var(--text);
+      text-decoration:none;
+      font-weight:700;
+      font-size:14px;
+    }
+    .btn.primary{background:var(--text);color:#fff}
+    .btn.primary:hover{opacity:.92}
+    .btn.ghost{background:#fff;color:var(--text)}
+    .btn.ghost:hover{background:#f7f7f7}
+
+    .note{
+      text-align:center;
+      margin-top:14px;
+      color:var(--muted);
+      font-size:13px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <div class="topbar">
+      <a href="index.html">← Back to Home</a>
+      <span style="opacity:.3">•</span>
+      <a href="index.html#projects">Projects</a>
+    </div>
+
+    <h1>Streaming Platform User Analysis</h1>
+    <p class="sub">
+      A comparative analytics project analyzing user behavior across
+      <b>Netflix</b> and <b>Amazon Prime</b> to understand how demographics,
+      subscriptions, and device usage shape engagement patterns.
+    </p>
+
+    <div class="chips">
+      <span class="chip">Python</span>
+      <span class="chip">Pandas</span>
+      <span class="chip">NumPy</span>
+      <span class="chip">Matplotlib</span>
+      <span class="chip">Seaborn</span>
+      <span class="chip">Exploratory Analysis</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Analysis focus</h2>
+        <p>
+          This project investigates how users interact with streaming platforms
+          and where behavioral differences emerge between Netflix and Amazon Prime.
+        </p>
+
+        <ul class="list">
+          <li>Demographic patterns across age and gender segments</li>
+          <li>Subscription preferences (monthly vs annual)</li>
+          <li>Device usage trends and viewing habits</li>
+          <li>Behavioral contrasts between platforms</li>
+          <li>Cleaned outputs designed for reuse and reporting</li>
+        </ul>
+      </section>
+
+      <aside class="card">
+        <h2>Project design</h2>
+        <p>
+          The workflow was intentionally structured to move beyond notebooks
+          into a <b>reproducible, script-based analysis</b>.
+        </p>
+
+        <div class="kpi">
+          <div class="row">
+            <div class="label">Data source</div>
+            <div class="value">Kaggle (public datasets)</div>
+          </div>
+          <div class="row">
+            <div class="label">Execution</div>
+            <div class="value">src/run.py</div>
+          </div>
+          <div class="row">
+            <div class="label">Structure</div>
+            <div class="value">Notebooks → Reproducible code</div>
+          </div>
+          <div class="row">
+            <div class="label">Outputs</div>
+            <div class="value">Cleaned CSVs & summaries</div>
+          </div>
+        </div>
+
+        <div class="divider" style="margin:18px 0 14px;"></div>
+
+        <h2>Why it matters</h2>
+        <p>
+          This project reflects real-world analytics practices by separating
+          exploration from execution and producing results that can be rerun,
+          shared, and extended.
+        </p>
+      </aside>
+    </div>
+
+    <div class="footer-actions">
+      <a class="btn ghost" href="index.html#projects">Back to Projects</a>
+      <a class="btn primary"
+         href="https://github.com/yourusername/streaming-platform-user-analysis"
+         target="_blank" rel="noopener">
+        View on GitHub
+      </a>
+    </div>
+
+    
+
+  </main>
+</body>
+</html>

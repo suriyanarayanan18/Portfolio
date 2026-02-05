@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Other Academic Projects | Suriya Narayanan</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --card:#ffffff;
+      --shadow: 0 10px 30px rgba(17,24,39,0.08);
+      --radius:16px;
+      --max: 1000px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.55;
+    }
+    .wrap{
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 28px 18px 56px;
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      margin-bottom: 14px;
+    }
+    .back{
+      color: var(--text);
+      text-decoration:none;
+      font-weight:600;
+      font-size:14px;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+    }
+    .back:hover{ text-decoration: underline; }
+    header{
+      padding: 8px 0 18px;
+    }
+    h1{
+      font-size: 44px;
+      letter-spacing: -0.02em;
+      margin: 6px 0 10px;
+    }
+    .sub{
+      margin: 0;
+      color: var(--muted);
+      max-width: 70ch;
+      font-size: 16px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+    @media (max-width: 860px){
+      h1{font-size:34px;}
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+    }
+    .thumb{
+      width:100%;
+      height: 230px;
+      background:#f3f4f6;
+      display:block;
+      object-fit: cover;
+    }
+    .content{
+      padding: 16px 16px 18px;
+    }
+    .title{
+      margin: 0 0 10px;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+      line-height:1.25;
+    }
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom: 10px;
+    }
+    .pill{
+      font-size: 12px;
+      color:#111827;
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 999px;
+      background:#fff;
+      white-space:nowrap;
+    }
+    .desc{
+      margin: 0 0 10px;
+      color: #111827;
+      font-size: 14.5px;
+    }
+    ul{
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    li{ margin: 6px 0; }
+
+    footer{
+      margin-top: 26px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      display:flex;
+      justify-content:center;
+    }
+    .homebtn{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background:#111827;
+      color:#fff;
+      text-decoration:none;
+      font-weight:700;
+      font-size:14px;
+    }
+    .homebtn:hover{ opacity:0.92; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="index.html">← Back to Home</a>
+    </div>
+
+    <header>
+      <h1>Other Academic Projects</h1>
+      <p class="sub">
+        A quick snapshot of academic work across strategy, risk, databases, and responsible AI-each project summarized with the core objective, approach, and key outcomes.
+      </p>
+    </header>
+
+    <section class="grid">
+
+      <!-- Under Armour -->
+      <article class="card">
+        <img class="thumb" src="assets/images/under-armour.jpg" alt="Under Armour Strategic Transformation project cover image" />
+        <div class="content">
+          <h2 class="title">Under Armour-Strategic Transformation & Analytics Vision</h2>
+          <div class="meta">
+            <span class="pill">Strategy</span>
+            <span class="pill">Analytics Vision</span>
+            <span class="pill">Product + Ecosystem</span>
+          </div>
+          <p class="desc">
+            Built a transformation plan centered on three pillars—personalized performance insights, sustainable manufacturing (DfM), and smart training ecosystems—to evolve Under Armour into a data-driven athlete platform.
+          </p>
+          <ul>
+            <li>Defined a roadmap from data foundation → sustainable manufacturing shift → smart performance launch → global athlete network expansion.</li>
+            <li>Identified key risks (data integration complexity, supply volatility, adoption of smart tech) and mitigation via phased rollout, diversified sourcing, and athlete feedback cohorts.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- ERM Vighnaharta -->
+      <article class="card">
+        <img class="thumb" src="assets/images/vighnaharta-erm.jpg" alt="ERM for Vighnaharta Food project cover image" />
+        <div class="content">
+          <h2 class="title">From Risk to Resilience-ERM for Vighnaharta Food (Dairy Manufacturing)</h2>
+          <div class="meta">
+            <span class="pill">Enterprise Risk Management</span>
+            <span class="pill">Operations</span>
+            <span class="pill">Risk Framework</span>
+          </div>
+          <p class="desc">
+            Designed a practical ERM framework for a small dairy manufacturer, moving from reactive firefighting to structured risk governance, measurement, and mitigation planning.
+          </p>
+          <ul>
+            <li>Created risk buckets (supply chain, quality control, financial, market, sustainability, regulatory, technology) and a quantitative scoring approach to prioritize threats.</li>
+            <li>Proposed lightweight governance: risk champion + shared risk log, short “risk moments” in meetings, and simple visual tracking for early warning signals.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Petal Post -->
+      <article class="card">
+        <img class="thumb" src="assets/images/petal-post.jpg" alt="Petal Post SQL project cover image" />
+        <div class="content">
+          <h2 class="title">Petal Post-A Plant Delivery System (SQL Database Project)</h2>
+          <div class="meta">
+            <span class="pill">SQL</span>
+            <span class="pill">Database Design</span>
+            <span class="pill">E-commerce System</span>
+          </div>
+          <p class="desc">
+            Designed a plant e-commerce concept combining a web front-end (Power Pages) with an SQL-backed system to manage customers, products, and orders for a smooth plant-buying experience.
+          </p>
+          <ul>
+            <li>Defined an end-to-end flow from browsing plants to checkout, supported by a structured backend in SQL/Azure Data Studio.</li>
+            <li>Focused on reliable data storage and retrieval for core entities (plants, orders, customers) to keep the shopping journey fast and consistent.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- RoyaltEase -->
+      <article class="card">
+        <img class="thumb" src="assets/images/royaltease.jpg" alt="RoyaltEase system project cover image" />
+        <div class="content">
+          <h2 class="title">RoyaltEase-Digital Rights & Royalty Management System</h2>
+          <div class="meta">
+            <span class="pill">Systems Design</span>
+            <span class="pill">DRM + Royalties</span>
+            <span class="pill">Data Flows</span>
+          </div>
+          <p class="desc">
+            Proposed a platform to streamline digital rights and royalty management with automated royalty calculation, usage tracking, and secure transaction handling.
+          </p>
+          <ul>
+            <li>Mapped the system using context + DFD levels, clarifying how artists, users, monitoring, rights rules, and payments interact.</li>
+            <li>Modeled key entities and relationships (artists, content, usage, license, royalty, payment, monitoring logs) to support traceable, auditable royalty distribution.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Energy Consumption -->
+      <article class="card">
+        <img class="thumb" src="assets/images/energy-consumption.jpg" alt="Prediction of Energy Consumption project cover image" />
+        <div class="content">
+          <h2 class="title">Prediction of Energy Consumption</h2>
+          <div class="meta">
+            <span class="pill">Machine Learning</span>
+            <span class="pill">Regression</span>
+            <span class="pill">Feature Engineering</span>
+          </div>
+          <p class="desc">
+            Built predictive models to estimate household energy consumption using building characteristics and weather variables, translating raw data into planning-oriented insights.
+          </p>
+          <ul>
+            <li>Performed targeted cleaning and feature creation (e.g., filtering comparable homes and engineering additional variables for stronger signal).</li>
+            <li>Compared models like CART (classification/regression trees) and linear regression to understand drivers and predictive performance.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Mind Reading Illusion (Missing project you said was not added) -->
+      <article class="card">
+        <img class="thumb" src="assets/images/mind-reading-illusion.jpg" alt="The Mind-Reading Illusion project cover image" />
+        <div class="content">
+          <h2 class="title">The Mind-Reading Illusion-Why Social Media Shows You What You Never Search or Say</h2>
+          <div class="meta">
+            <span class="pill">Responsible AI</span>
+            <span class="pill">Recommender Systems</span>
+            <span class="pill">Privacy + Ethics</span>
+          </div>
+          <p class="desc">
+            Investigated why feeds can feel “psychic” by testing how micro-signals (dwell time, pauses, replays, social-graph effects) reshape recommendations even without explicit searches or typing.
+          </p>
+          <ul>
+            <li>Ran user-side interaction experiments (micro-pause, social graph influence) to observe how quickly recommendation outputs shift.</li>
+            <li>Reviewed platform documentation/model-card style sources to compare what platforms disclose vs. what users assume—framing the gap as an ethics and transparency issue.</li>
+          </ul>
+        </div>
+      </article>
+
+    </section>
+
+    <footer>
+      <a class="homebtn" href="index.html">← Back to Home</a>
+    </footer>
+  </div>
+</body>
+</html>

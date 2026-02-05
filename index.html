@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Suriya Narayanan | Portfolio</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Icons (simple + recruiter-safe) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
+        <span class="brand__mark">*</span>
+        <span class="brand__text">Portfolio Homepage</span>
+      </div>
+
+      <button class="menuBtn" id="menuBtn" aria-label="Open navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <!-- Slide-down menu -->
+    <nav class="menu" id="menu" aria-label="Primary navigation">
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#skills">Skills</a>
+      <a href="#certifications">Certifications</a>
+      <a href="#contact">Contact</a>
+      <a href="other-academic-projects.html">Other Academic Projects</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+ <header id="home" class="hero">
+  <div class="hero_inner">
+    <img class="hero_avatar" src="assets/profile.jpg" alt="Suriya Narayanan" />
+
+    <p class="hero_kicker">Welcome to</p>
+
+    <h1 class="hero_title reveal">
+        Suriya  Narayanan’s
+    </h1>
+
+    <h2 class="hero_subtitle">Portfolio</h2>
+
+    <div class="brush_divider" aria-hidden="true"></div>
+
+    <p class="hero_scroll">Scroll to explore ↓</p>
+  </div>
+</header>
+
+    <!-- CONTACT STRIP (you wanted this to appear after a small scroll) -->
+    <section class="contactStrip" id="contact">
+      <div class="contactStrip__inner">
+        <div class="contactCard">
+          <div class="contactIcon">📍</div>
+          <div>
+            <div class="contactLabel">Address</div>
+            <div class="contactValue">United States</div>
+          </div>
+        </div>
+
+        <div class="contactCard">
+          <div class="contactIcon">✉️</div>
+          <div>
+            <div class="contactLabel">Email</div>
+            <div class="contactValue">
+              <a href="mailto:suriyanarayanan.pk@gmail.com">suriyanarayanan.pk@gmail.com</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="contactCard">
+          <div class="contactIcon">in</div>
+          <div>
+            <div class="contactLabel">LinkedIn</div>
+            <div class="contactValue">
+              <a class="miniBtn" target="_blank" rel="noopener" href="https://www.linkedin.com/in/suriya-narayanan-syr18">View here</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="contactCard">
+          <div class="contactIcon">⌁</div>
+          <div>
+            <div class="contactLabel">GitHub</div>
+            <div class="contactValue">
+              <a class="miniBtn" target="_blank" rel="noopener" href="https://github.com/suriyanarayanan18">View here</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section" id="about">
+      <div class="container">
+        <h3 class="sectionTitle">👋🏼 Hello,
+        </h3>
+        <p class="sectionNote">I'm Suriya Narayanan.</p>
+
+        <div class="aboutGrid">
+          <!-- LEFT: text -->
+          <div class="aboutText">
+            <p class="lead">
+              I’m a data analytics professional with a strong foundation in business, risk, and product thinking, 
+              and a Master’s in Information Systems with a Certificate of Advanced Study in Data Science. 
+              .
+            </p>
+
+            <p>
+              My work sits at the intersection of data, decision-making, and storytelling, helping teams understand what’s happening, why it matters, and what to do next.
+            I’ve worked across campaign and measurement analytics, dashboarding, SQL-driven analysis, and applied data science, building insights that are not just accurate but trusted, explainable, and actionable.
+            </p>
+
+            <div class="aboutBullets">
+              <div class="pill">Dashboards (Tableau / Power BI)</div>
+              <div class="pill">SQL (joins, modeling basics)</div>
+              <div class="pill">Python (EDA + automation)</div>
+              <div class="pill">Storytelling & stakeholder-ready insights</div>
+            </div>
+          </div>
+
+          <!-- RIGHT: timeline / flow -->
+          <div class="timeline" aria-label="Experience timeline">
+            <div class="timelineItem">
+              <div class="dot"></div>
+              <div class="timelineContent">
+                <div class="timelineTop">
+                  <span class="timelineRole">Researcher – AI Team</span>
+                  <span class="timelineYear">Jan 2025 – Dec 2025</span>
+                </div>
+                <div class="timelineOrg">Nexis Lab, Syracuse University</div>
+                <div class="timelineDesc">
+                  Built hybrid recommender models + ETL pipelines for 20K+ records and improved prototype relevance. 
+                </div>
+              </div>
+            </div>
+
+            <div class="timelineItem">
+              <div class="dot"></div>
+              <div class="timelineContent">
+                <div class="timelineTop">
+                  <span class="timelineRole">Data Analyst</span>
+                  <span class="timelineYear">Jan 2021 – Jun 2022</span>
+                </div>
+                <div class="timelineOrg">Paragon Digital Services (Dentsu International)</div>
+                <div class="timelineDesc">
+                  Analyzed campaign performance, automated KPI dashboards, and improved reporting efficiency. 
+                </div>
+              </div>
+            </div>
+
+            <div class="timelineItem">
+              <div class="dot"></div>
+              <div class="timelineContent">
+                <div class="timelineTop">
+                  <span class="timelineRole">Business Analyst Intern</span>
+                  <span class="timelineYear">Mar 2019 – Sep 2019</span>
+                </div>
+                <div class="timelineOrg">Suguna Industries, Coimbatore</div>
+                <div class="timelineDesc">
+                  Built Excel dashboards and improved inventory visibility through analysis + tracking. 
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="divider" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section class="section" id="projects">
+      <div class="container">
+        <h2 class="sectionTitle">Projects</h2>
+        <p class="sectionNote">* Dashboards are created for portfolio demonstration and learning purposes.</p>
+
+        <div class="projectGrid">
+
+          <!-- 1: Airline -->
+          <article class="projectCard">
+            <img class="projectImg" src="assets/airline.jpg" alt="Airline Delay Analysis preview" />
+            <div class="projectBody">
+              <h3 class="projectTitle">AIRLINE DELAY ANALYSIS</h3>
+              <p class="projectDesc">
+                Breaks down delay causes, airline/airport performance, and seasonality - built for clear operational insights.
+              </p>
+              <p class="projectMeta">Tableau | Analytics | Dashboard Story</p>
+
+              <div class="btnRow">
+                <a class="btn btnPrimary" href="airline-dashboard.html">View Dashboard</a>
+                <a class="btn btnGhost" href="airline-delay-summary.html">View Summary</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 2: Instacart -->
+          <article class="projectCard">
+            <img class="projectImg" src="assets/instacart.jpg" alt="Instacart Analysis preview" />
+            <div class="projectBody">
+              <h3 class="projectTitle">INSTACART ANALYSIS</h3>
+              <p class="projectDesc">
+                Shopping patterns and reorder behavior - surfaces actionable insights for growth and retention decisions.
+              </p>
+              <p class="projectMeta">Tableau | Customer Insights | Visualization</p>
+
+              <div class="btnRow">
+                <a class="btn btnPrimary" href="instacart-dashboard.html">View Dashboard</a>
+                <a class="btn btnGhost" href="instacart-summary.html">View Summary</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 3: MovieMatch (bottom left) -->
+          <article class="projectCard">
+            <img class="projectImg" src="assets/moviematch.jpg" alt="MovieMatch preview" />
+            <div class="projectBody">
+              <h3 class="projectTitle">MOVIEMATCH - AI MOVIE RECOMMENDER</h3>
+              <p class="projectDesc">
+                Streamlit app with collaborative filtering, user login, and personalized recommendations for discovery.
+              </p>
+              <p class="projectMeta">Python | Streamlit | Recommender</p>
+
+              <div class="btnRow">
+                <a class="btn btnPrimary" target="_blank" rel="noopener" href="https://github.com/suriyanarayanan18/Movie-match">View Git</a>
+                <a class="btn btnGhost" href="moviematch-summary.html">View Summary</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 4: Netflix vs Prime (bottom right) -->
+          <article class="projectCard">
+            <img class="projectImg" src="assets/netflixprime.jpg" alt="Netflix vs Prime preview" />
+            <div class="projectBody">
+              <h3 class="projectTitle">NETFLIX vs PRIME - USER ANALYTICS</h3>
+              <p class="projectDesc">
+                Cleaned and compared two streaming datasets and visualized device usage + subscription behavior using Python.
+              </p>
+              <p class="projectMeta">Python | Pandas | EDA</p>
+
+              <div class="btnRow">
+                <a class="btn btnPrimary" target="_blank" rel="noopener" href="https://github.com/suriyanarayanan18">View Git</a>
+                <a class="btn btnGhost" href="streaming-summary.html">View Summary</a>
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+        <div class="centerCta">
+          <a class="btn btnPrimary btnWide" href="other-academic-projects.html">Other Academic Projects</a>
+        </div>
+
+        <div class="divider" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section class="section" id="skills">
+      <div class="container">
+        <h2 class="sectionTitle center">Technical &amp; Professional Skills</h2>
+
+        <div class="skillIcons">
+          <div class="skillIcon">
+            <div class="skillCircle">◔</div>
+            <div class="skillLabel">Tableau</div>
+          </div>
+          <div class="skillIcon">
+            <div class="skillCircle">⟄</div>
+            <div class="skillLabel">Power BI</div>
+          </div>
+          <div class="skillIcon">
+            <div class="skillCircle">⌗</div>
+            <div class="skillLabel">Excel</div>
+          </div>
+          <div class="skillIcon">
+            <div class="skillCircle">⛁</div>
+            <div class="skillLabel">SQL</div>
+          </div>
+        </div>
+
+        <div class="skillsGrid">
+          <div class="skillBlock">
+            <h3>Dashboard &amp; Reporting</h3>
+            <ul>
+              <li>Custom dashboards</li>
+              <li>Interactive reporting</li>
+              <li>KPI design &amp; storytelling</li>
+              <li>Executive-ready visuals</li>
+            </ul>
+          </div>
+
+          <div class="skillBlock">
+            <h3>Analytics &amp; Modeling</h3>
+            <ul>
+              <li>Python (EDA &amp; automation)</li>
+              <li>SQL querying &amp; joins</li>
+              <li>Data modeling basics</li>
+              <li>Insight synthesis</li>
+            </ul>
+          </div>
+
+          <div class="skillBlock">
+            <h3>Data Cleaning &amp; Prep</h3>
+            <ul>
+              <li>Data integrity checks</li>
+              <li>Standardization</li>
+              <li>Transformations</li>
+              <li>Documentation</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="divider" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- CERTIFICATIONS -->
+    <section class="section" id="certifications">
+      <div class="container">
+        <h2 class="sectionTitle">Certifications</h2>
+
+        <div class="certGrid">
+          <div class="certCard">
+            <div class="certTitle">Google Analytics Certification</div>
+            <div class="certMeta">Google Digital Academy (Skillshop)</div>
+          </div>
+
+          <div class="certCard">
+            <div class="certTitle">Data Analytics &amp; Visualization Job Simulation</div>
+            <div class="certMeta">Accenture &amp; Forage</div>
+          </div>
+
+          <div class="certCard">
+            <div class="certTitle">Excel Associate (Office 2019)</div>
+            <div class="certMeta">Microsoft Office Specialist</div>
+          </div>
+
+          <div class="certCard">
+            <div class="certTitle">Introduction to Data Science</div>
+            <div class="certMeta">Cisco Academy</div>
+          </div>
+        
+
+         <div class="certCard">
+            <div class="certTitle">Process Mining Fundamentals</div>
+            <div class="certMeta">Celonis</div>
+          </div>
+        
+
+         <div class="certCard">
+            <div class="certTitle">The Fundamentals of Digital Marketing</div>
+            <div class="certMeta">Google</div>
+          </div>
+        </div>
+
+        
+
+        <div class="divider" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer__inner">
+        <h3 class="footerTitle">Thank you for viewing!</h3>
+        <a class="miniBtn" href="#top">Back to top</a>
+      </div>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

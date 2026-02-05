@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MovieMatch — Project Summary</title>
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#0b0b0b;
+      --muted:#5b5b5b;
+      --line:#e9e9e9;
+      --chip:#f6f6f6;
+      --shadow: 0 10px 30px rgba(0,0,0,.06);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text)}
+    body{font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif; line-height:1.55}
+    a{color:inherit}
+
+    .wrap{max-width:980px;margin:0 auto;padding:28px 18px 56px}
+    .topbar{
+      display:flex;align-items:center;gap:12px;
+      padding:10px 0 18px;border-bottom:1px solid var(--line);
+    }
+    .topbar a{
+      text-decoration:none;color:var(--muted);
+      font-weight:600;font-size:14px;
+    }
+    .topbar a:hover{color:var(--text);text-decoration:underline}
+    .dot{width:6px;height:6px;border-radius:999px;background:var(--text);display:inline-block;opacity:.25}
+
+    h1{
+      font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+      font-size:54px;letter-spacing:-.02em;line-height:1.05;
+      margin:28px 0 10px;
+    }
+    .sub{
+      max-width:78ch;
+      color:var(--muted);
+      margin:0 0 18px;
+      font-size:16px;
+    }
+
+    .chips{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 30px}
+    .chip{
+      background:var(--chip);
+      border:1px solid var(--line);
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      color:#2a2a2a;
+    }
+
+    .divider{
+      height:14px;
+      margin:26px 0 26px;
+      background:
+        radial-gradient(closest-side, rgba(0,0,0,.14), rgba(0,0,0,0)) center/65% 10px no-repeat;
+      opacity:.9;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:24px;
+      align-items:start;
+    }
+    @media (max-width: 860px){
+      .grid{grid-template-columns:1fr}
+      h1{font-size:44px}
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px 18px;
+      box-shadow: var(--shadow);
+      background:#fff;
+    }
+    .card h2{
+      margin:0 0 10px;
+      font-size:16px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:#1a1a1a;
+    }
+    .card p{margin:0 0 10px;color:var(--muted);font-size:15px}
+    .list{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:15px}
+    .list li{margin:6px 0}
+
+    .kpi{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .kpi .row{
+      display:flex;justify-content:space-between;gap:12px;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+    }
+    .kpi .label{color:var(--muted);font-size:13px}
+    .kpi .value{font-weight:700;font-size:13px}
+
+    .footer-actions{
+      display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+      margin-top:34px;
+    }
+    .btn{
+      min-width:190px;
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:12px 16px;border-radius:0;
+      border:1px solid var(--text);
+      text-decoration:none;
+      font-weight:700;
+      font-size:14px;
+      letter-spacing:.02em;
+      transition:.15s ease;
+    }
+    .btn.primary{background:var(--text);color:#fff}
+    .btn.primary:hover{transform:translateY(-1px);opacity:.92}
+    .btn.ghost{background:#fff;color:var(--text)}
+    .btn.ghost:hover{transform:translateY(-1px);background:#f7f7f7}
+
+    .note{
+      text-align:center;
+      margin-top:14px;
+      color:var(--muted);
+      font-size:13px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <div class="topbar">
+      <a href="index.html">← Back to Home</a>
+      <span class="dot"></span>
+      <a href="index.html#projects">Projects</a>
+    </div>
+
+    <h1>MovieMatch</h1>
+    <p class="sub">
+      A Streamlit-based movie recommendation platform that uses <b>item-based collaborative filtering</b>
+      to generate personalized suggestions, plus a lightweight <b>achievement system</b> and <b>social discovery</b>
+      to make the experience engaging.
+    </p>
+
+    <div class="chips">
+      <span class="chip">Python</span>
+      <span class="chip">Streamlit</span>
+      <span class="chip">scikit-learn</span>
+      <span class="chip">SQLite</span>
+      <span class="chip">Collaborative Filtering</span>
+      <span class="chip">TMDb API</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>What I built</h2>
+        <p>
+          MovieMatch brings together a recommendation engine, user accounts, and a clean UI to help users
+          discover movies faster — with explainable logic and practical product features.
+        </p>
+
+        <ul class="list">
+          <li><b>Personalized recommendations</b> using cosine similarity on an item–item matrix.</li>
+          <li><b>User accounts</b> with hashed passwords and stored rating history.</li>
+          <li><b>Badges & gamification</b> to reward engagement and repeat usage.</li>
+          <li><b>Social discovery</b> by matching users with similar rating patterns.</li>
+          <li><b>Poster + metadata</b> enrichment via TMDb API with caching for faster loads.</li>
+        </ul>
+      </section>
+
+      <aside class="card">
+        <h2>Tech snapshot</h2>
+        <div class="kpi">
+          <div class="row">
+            <div class="label">Dataset</div>
+            <div class="value">MovieLens 100K</div>
+          </div>
+          <div class="row">
+            <div class="label">Model</div>
+            <div class="value">Item-based CF (cosine)</div>
+          </div>
+          <div class="row">
+            <div class="label">Storage</div>
+            <div class="value">SQLite (users, ratings, badges)</div>
+          </div>
+          <div class="row">
+            <div class="label">UI</div>
+            <div class="value">Streamlit + custom CSS</div>
+          </div>
+          <div class="row">
+            <div class="label">Integration</div>
+            <div class="value">TMDb posters + metadata</div>
+          </div>
+        </div>
+
+        <div class="divider" style="margin:18px 0 14px;"></div>
+
+        <h2>Why it matters</h2>
+        <p>
+          This project demonstrates how I translate data science into a product:
+          modeling, data handling, UX choices, and real features that drive usage.
+        </p>
+      </aside>
+    </div>
+
+    <div class="footer-actions">
+      <a class="btn ghost" href="index.html#projects">Back to Projects</a>
+      <a class="btn primary" href="https://github.com/suriyanarayanan18/Movie-match" target="_blank" rel="noopener">
+        View on GitHub
+      </a>
+    </div>
+
+    
+  </main>
+</body>
+</html>
