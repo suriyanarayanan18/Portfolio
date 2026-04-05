@@ -1,196 +1,115 @@
 // Vercel Serverless Function: /api/generate
-// Uses Gemini 2.0 Flash (clean output) as primary
-// Falls back to Gemma 4 with aggressive extraction if needed
+// Uses Claude (Anthropic) for clean, reliable portfolio explanations
 
 const PROJECTS = {
   airline: {
     title: "Airline Delay Analysis",
     tech: "Tableau, calculated fields, parameter-driven filters, story points",
-    detail: "Interactive Tableau dashboard analyzing US flight delay patterns across weather, carrier, NAS, security, and late aircraft causes. Airport-level performance comparisons and seasonal trend analysis. Story points guide viewers from high-level trends to granular root causes. Designed for operations teams."
+    detail: "Interactive Tableau dashboard analyzing US flight delay patterns across weather, carrier, NAS, security, and late aircraft causes. Airport-level performance comparisons and seasonal trend analysis. Story points guide viewers from high-level trends to granular root causes. Designed for operations teams to identify actionable delay patterns."
   },
   instacart: {
     title: "Instacart Analysis",
     tech: "Tableau, data visualization, customer segmentation",
-    detail: "Analyzed 3M+ grocery orders for shopping patterns, reorder behavior, and product affinities. Built dashboards covering peak ordering hours, department reorder rates, basket composition, and customer segmentation by purchase frequency. Found organic products had 15% higher reorder rates. Designed for product and growth teams."
+    detail: "Analyzed 3M+ grocery orders for shopping patterns, reorder behavior, and product affinities. Built dashboards covering peak ordering hours, department reorder rates, basket composition, and customer segmentation by purchase frequency. Found organic products had 15% higher reorder rates. Designed for product and growth teams to prioritize retention strategies."
   },
   moviematch: {
-    title: "MovieMatch AI Movie Recommender",
+    title: "MovieMatch - AI Movie Recommender",
     tech: "Python, Streamlit, scikit-learn, cosine similarity, collaborative filtering",
-    detail: "Full-stack recommendation engine using user-user and item-item collaborative filtering with cosine similarity on a user-item rating matrix. Streamlit app with authentication, preference capture, real-time recommendations. Cold-start handled via popularity fallback. Session state for persistent UX."
+    detail: "Full-stack recommendation engine using user-user and item-item collaborative filtering with cosine similarity on a user-item rating matrix. Streamlit app with authentication, preference capture, real-time recommendations. Cold-start handled via popularity-based fallback. Session state management for persistent user experience."
   },
   f1: {
     title: "F1 Data Intelligence Report",
-    tech: "JavaScript, Ergast API, OpenF1 API, AI-assisted code generation, Vercel",
-    detail: "Interactive F1 analytics platform with real race data from Ergast and OpenF1 APIs. Driver performance comparisons, qualifying vs race pace analysis, pit stop strategy breakdowns, historical trend visualization. Directed analysis with Codex-assisted development. Deployed live on Vercel."
+    tech: "JavaScript, Ergast API, OpenF1 API, AI-assisted code generation (Codex), Vercel",
+    detail: "Interactive F1 analytics platform with real race data from Ergast and OpenF1 APIs. Driver performance comparisons, qualifying vs race pace analysis, pit stop strategy breakdowns, historical trend visualization. Directed analysis approach with Codex-assisted development. Deployed live on Vercel with responsive design."
   },
   underarmour: {
-    title: "Under Armour Strategic Transformation",
-    tech: "Strategic planning, analytics roadmap, risk assessment",
-    detail: "Transformation roadmap built on three pillars: personalized athlete performance insights, sustainable manufacturing through DfM, and smart training ecosystems. Phased rollout from data foundation to global athlete network. Identified and mitigated risks across data integration, supply volatility, and tech adoption."
+    title: "Under Armour - Strategic Transformation & Analytics Vision",
+    tech: "Strategic planning, analytics roadmap, risk assessment, phased rollout design",
+    detail: "Transformation roadmap built on three pillars: personalized athlete performance insights, sustainable manufacturing through Design for Manufacturing (DfM), and smart training ecosystems. Phased rollout from data foundation to global athlete network expansion. Identified and mitigated risks across data integration complexity, supply chain volatility, and smart tech adoption."
   },
   erm: {
-    title: "ERM for Vighnaharta Food Dairy Manufacturing",
+    title: "ERM for Vighnaharta Food (Dairy Manufacturing)",
     tech: "Risk management frameworks, quantitative scoring, governance design",
-    detail: "Enterprise Risk Management framework for a small dairy manufacturer spanning 7 risk domains: supply chain, quality control, financial, market, sustainability, regulatory, technology. Quantitative threat scoring to prioritize risks. Lightweight governance with risk champion, shared log, meeting risk moments, and visual dashboards."
+    detail: "Enterprise Risk Management framework for a small dairy manufacturer spanning 7 risk domains: supply chain, quality control, financial, market, sustainability, regulatory, technology. Quantitative threat scoring to prioritize risks by likelihood and impact. Lightweight governance: risk champion role, shared risk log, meeting risk moments, and visual tracking dashboards for early warning."
   },
   petalpost: {
-    title: "Petal Post Plant Delivery System",
+    title: "Petal Post - Plant Delivery System",
     tech: "SQL Server, Azure Data Studio, Power Pages, stored procedures, normalization",
-    detail: "Plant e-commerce database system with Power Pages frontend and SQL Server backend. End-to-end flow from browsing to checkout. Normalized entity modeling for plants, orders, customers, inventory with foreign keys and indexing. Stored procedures for order processing and inventory management."
+    detail: "Plant e-commerce database system with Power Pages frontend and SQL Server/Azure Data Studio backend. End-to-end data flow from browsing to checkout. Normalized entity modeling for plants, orders, customers, inventory with foreign keys and indexing. Stored procedures for order processing and inventory management."
   },
   royaltease: {
-    title: "RoyaltEase Digital Rights and Royalty Management",
-    tech: "Systems design, DFDs, entity-relationship modeling",
-    detail: "Digital rights and royalty management platform design with automated royalty calculation, real-time usage tracking, and secure payment processing. Architecture documented through context diagrams and multi-level DFDs. Entity modeling for artists, content, usage logs, licenses, royalties, and payments."
+    title: "RoyaltEase - Digital Rights & Royalty Management",
+    tech: "Systems design, context diagrams, DFDs, entity-relationship modeling",
+    detail: "Digital rights and royalty management platform design with automated royalty calculation, real-time usage tracking, and secure payment processing. System architecture documented through context diagrams and multi-level DFDs showing interactions between artists, users, monitoring systems, and payment flows. Entity modeling for fully traceable, auditable royalty distribution."
   },
   energy: {
     title: "Prediction of Energy Consumption",
-    tech: "R, CART, linear regression, feature engineering",
-    detail: "Predictive models for household energy consumption using building characteristics and weather variables. Feature engineering for stronger signal. Compared CART and linear regression models to understand drivers. Translated findings into energy efficiency planning recommendations."
+    tech: "R, CART (classification/regression trees), linear regression, feature engineering",
+    detail: "Predictive models for household energy consumption using building characteristics (square footage, age, insulation type) and weather variables (temperature, humidity, heating/cooling degree days). Targeted data cleaning and feature engineering for stronger signal. Compared CART and linear regression to understand key drivers and predictive accuracy. Results translated into energy efficiency planning recommendations."
   },
   streaming: {
-    title: "Netflix vs Prime User Behavior Analytics",
+    title: "Netflix vs Prime - User Behavior Analytics",
     tech: "Python, pandas, matplotlib, exploratory data analysis",
-    detail: "Comparative analysis of Netflix and Amazon Prime user datasets. Standardized two independent datasets for consistent comparison. Analyzed demographics, subscription models, device engagement patterns. Found platform preference differences across age groups. Built reproducible workflow separating notebooks from production scripts."
+    detail: "Comparative analysis of Netflix and Amazon Prime user datasets. Cleaned and structured two independent streaming datasets for consistent cross-platform comparison. Analyzed age distribution, gender breakdown, subscription models, and device engagement patterns. Key insights: platform preference differences across age groups and subscription tier correlations. Restructured into reproducible workflow separating notebooks from production scripts."
   },
   mindreading: {
-    title: "The Mind-Reading Illusion",
-    tech: "Research methodology, platform analysis, responsible AI frameworks",
-    detail: "Investigation into how micro-signals like dwell time, pauses, replays, and social-graph effects reshape social media recommendations without explicit user input. Ran interaction experiments measuring recommendation shift speed. Compared platform disclosures versus user assumptions. Framed as an ethics and transparency issue with AI governance implications."
+    title: "The Mind-Reading Illusion - Why Social Media Shows You What You Never Search",
+    tech: "Research methodology, platform analysis, responsible AI frameworks, model card review",
+    detail: "Investigation into how micro-signals (dwell time, pauses, replays, social-graph effects) reshape social media recommendations without explicit user input. Ran user-side interaction experiments including micro-pause tests and social graph influence analysis to observe recommendation shift speed. Reviewed platform documentation and model-card style sources to compare what platforms disclose vs what users assume. Framed the disclosure gap as an ethics and transparency issue with implications for AI governance and regulation."
   }
 };
 
-const ROLE_NAMES = {
-  recruiter: "recruiter",
-  data_scientist: "data scientist",
-  hiring_manager: "hiring manager",
-  pm: "product manager"
+const ROLE_CONFIG = {
+  recruiter: {
+    label: "Recruiter",
+    system: `You write concise portfolio project descriptions for recruiters reviewing candidates for Data Analyst and Business Analyst roles. 
+
+Your output is always exactly 3-4 sentences of polished, flowing prose written in first person as Suriya Narayanan. Focus on measurable outcomes, name specific technical tools used, and connect the work to DA/BA role relevance.
+
+Never start with "I built" or "I created" - vary your opening. Be confident but not arrogant. Output only the paragraph, nothing else.`
+  },
+  data_scientist: {
+    label: "Data Scientist",
+    system: `You write concise portfolio project descriptions for senior data scientists evaluating technical depth.
+
+Your output is always exactly 3-4 sentences of polished, flowing prose written in first person as Suriya Narayanan. Focus on methodology, algorithms or analytical approaches used, data pipeline decisions, and technical tradeoffs.
+
+Never start with "I built" or "I created" - vary your opening. Be specific about tools, libraries, and data handling. Output only the paragraph, nothing else.`
+  },
+  hiring_manager: {
+    label: "Hiring Manager",
+    system: `You write concise portfolio project descriptions for hiring managers evaluating problem-solving ability and ownership.
+
+Your output is always exactly 3-4 sentences of polished, flowing prose written in first person as Suriya Narayanan. Focus on the business problem identified, how the work was scoped independently, key decisions and their rationale, and what the deliverable enabled for stakeholders.
+
+Never start with "I built" or "I created" - vary your opening. Show initiative and judgment. Output only the paragraph, nothing else.`
+  },
+  pm: {
+    label: "Product Manager",
+    system: `You write concise portfolio project descriptions for product managers evaluating product thinking.
+
+Your output is always exactly 3-4 sentences of polished, flowing prose written in first person as Suriya Narayanan. Focus on the user or business problem being solved, how analysis informed product or strategy decisions, the insight-to-action pipeline, and scalability of the approach.
+
+Never start with "I built" or "I created" - vary your opening. Frame everything as impact and decision-enablement. Output only the paragraph, nothing else.`
+  }
 };
 
-const ROLE_FOCUS = {
-  recruiter: "measurable outcomes, specific technical skills used, and why this is relevant to Data Analyst or Business Analyst roles",
-  data_scientist: "methodology, algorithms, data pipeline architecture, and technical tradeoffs made",
-  hiring_manager: "the business problem identified, how I scoped the work, key decisions I made, and what the deliverable enabled",
-  pm: "the user or business problem solved, how the analysis informed decisions, and the impact on stakeholders"
-};
+const FOLLOWUP_SYSTEM = `You are Suriya Narayanan, a data analytics professional with a Master's in Information Systems and a Data Science certificate from Syracuse University. You have experience at Dentsu International (campaign analytics) and Syracuse's Nexis Lab (ETL pipelines, recommendation systems).
 
-function buildPrompt(project, role, followupQuestion) {
-  if (followupQuestion) {
-    return `I am Suriya Narayanan, a data analytics professional. I worked on "${project.title}" using ${project.tech}. Here is what I did: ${project.detail}
-
-Someone asks me: "${followupQuestion}"
-
-I answer directly in 2 sentences:`;
-  }
-
-  return `Write a 4-sentence paragraph in first person as Suriya Narayanan, a data analytics professional, describing the project below for a ${ROLE_NAMES[role]}. Focus on ${ROLE_FOCUS[role]}. Do not start with "I built" or "I created". Output only the paragraph, nothing else.
-
-Project: ${project.title}
-Tools: ${project.tech}
-What was done: ${project.detail}`;
-}
-
-// Extract clean paragraph from potentially messy model output
-function extractClean(raw) {
-  if (!raw) return "";
-
-  let text = raw;
-
-  // If output contains "My description:" or similar, take everything after
-  const afterMarkers = [
-    /my (?:description|answer|response|paragraph)\s*:\s*/i,
-    /here(?:'s| is)(?: the)? (?:paragraph|description|answer)\s*:\s*/i,
-    /final (?:version|paragraph|answer|output)\s*:\s*/i,
-    /output\s*:\s*/i
-  ];
-  for (const re of afterMarkers) {
-    const idx = text.search(re);
-    if (idx !== -1) {
-      text = text.slice(idx).replace(re, '');
-    }
-  }
-
-  // Split into paragraph blocks
-  const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
-
-  // Score each block: higher = more likely to be the final answer
-  const scored = blocks.map(block => {
-    let score = 0;
-    const lower = block.toLowerCase();
-    const len = block.length;
-
-    // Length: real paragraphs are 150-600 chars
-    if (len >= 150 && len <= 800) score += 10;
-    else if (len >= 80 && len < 150) score += 3;
-    else if (len < 50) score -= 20;
-
-    // Penalty for reasoning markers
-    if (lower.startsWith('*')) score -= 15;
-    if (lower.startsWith('-')) score -= 15;
-    if (lower.startsWith('draft')) score -= 20;
-    if (lower.startsWith('check')) score -= 20;
-    if (lower.startsWith('refin')) score -= 15;
-    if (lower.startsWith('let me')) score -= 15;
-    if (lower.startsWith('okay')) score -= 15;
-    if (lower.startsWith('constraint')) score -= 15;
-    if (lower.startsWith('sentence ')) score -= 15;
-    if (lower.match(/^\d+[\.\)]/)) score -= 10;
-    if (lower.includes('yes (')) score -= 15;
-    if (lower.includes('? yes')) score -= 15;
-    if (lower.includes('? no')) score -= 15;
-
-    // Bonus for prose-like content
-    const sentences = block.split(/[.!?]+/).filter(s => s.trim().length > 10);
-    if (sentences.length >= 2 && sentences.length <= 6) score += 8;
-
-    // Penalty for bullet-heavy content
-    const bulletLines = block.split('\n').filter(l => l.trim().match(/^[\*\-•]/));
-    if (bulletLines.length > 1) score -= 10;
-
-    // Bonus for first-person voice
-    if (lower.includes(' i ') || lower.startsWith('i ')) score += 3;
-
-    return { block, score };
-  });
-
-  // Sort by score descending, take the best
-  scored.sort((a, b) => b.score - a.score);
-
-  if (scored.length > 0 && scored[0].score > 0) {
-    text = scored[0].block;
-  } else if (blocks.length > 0) {
-    // Fallback: take the last block (usually the final version)
-    text = blocks[blocks.length - 1];
-  }
-
-  // Final cleanup
-  text = text
-    .replace(/\*\*/g, '')
-    .replace(/(?<![a-zA-Z])\*(?![a-zA-Z])/g, '')
-    .replace(/^#+\s*/gm, '')
-    .replace(/`/g, '')
-    .replace(/\n/g, ' ')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-
-  // Remove any trailing self-check lines that got merged
-  text = text.replace(/\s*\d+-\d+ sentences\?.*$/i, '');
-  text = text.replace(/\s*(?:yes|no)\s*[\(\.].*$/i, '');
-  text = text.replace(/\s*check\s*:.*$/i, '');
-  text = text.replace(/\s*constraint.*$/i, '');
-
-  return text;
-}
+Answer follow-up questions about your portfolio projects in exactly 2-3 sentences. Be specific to the project context. Write in first person, flowing prose. Be honest and confident. Output only your answer.`;
 
 export default async function handler(req, res) {
+  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const apiKey = process.env.GEMMA_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "API key not configured." });
+  const apiKey = process.env.CLAUDE_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: "API key not configured. Add CLAUDE_API_KEY to Vercel environment variables." });
+  }
 
   try {
     const { projectId, role, followupQuestion } = req.body;
@@ -198,60 +117,61 @@ export default async function handler(req, res) {
 
     const project = PROJECTS[projectId];
     if (!project) return res.status(400).json({ error: "Unknown project." });
-    if (!ROLE_NAMES[role]) return res.status(400).json({ error: "Unknown role." });
 
-    const prompt = buildPrompt(project, role, followupQuestion);
+    const roleConfig = ROLE_CONFIG[role];
+    if (!roleConfig) return res.status(400).json({ error: "Unknown role." });
 
-    // Try models in order: Gemini Flash (cleanest), then Gemma 4
-    const models = ["gemini-2.0-flash", "gemma-4-31b-it"];
-    let finalText = "";
-    let usedModel = "";
+    let systemPrompt, userMessage;
 
-    for (const model of models) {
-      try {
-        const resp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: prompt }] }],
-              generationConfig: {
-                temperature: 0.7,
-                topP: 0.85,
-                topK: 30,
-                maxOutputTokens: 250
-              }
-            })
-          }
-        );
+    if (followupQuestion) {
+      systemPrompt = FOLLOWUP_SYSTEM;
+      userMessage = `Project: ${project.title}
+Tools used: ${project.tech}
+What I did: ${project.detail}
 
-        if (!resp.ok) continue;
-        const data = await resp.json();
-        const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!raw) continue;
-
-        finalText = extractClean(raw);
-        usedModel = model;
-
-        // If we got a good paragraph (80+ chars), stop
-        if (finalText.length >= 80) break;
-      } catch (e) {
-        continue;
-      }
+Question: "${followupQuestion}"`;
+    } else {
+      systemPrompt = roleConfig.system;
+      userMessage = `Project: ${project.title}
+Tools used: ${project.tech}
+What I did: ${project.detail}`;
     }
 
-    if (!finalText || finalText.length < 50) {
-      return res.status(200).json({
-        text: "Could not generate a response. Please try again.",
-        model: usedModel
-      });
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 250,
+        system: systemPrompt,
+        messages: [
+          { role: "user", content: userMessage }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error("Claude API error:", response.status, errorData);
+      return res.status(response.status).json({ error: "AI generation failed. Please try again." });
     }
 
-    return res.status(200).json({ text: finalText, model: usedModel });
+    const data = await response.json();
+
+    const text = data.content
+      ?.filter(item => item.type === "text")
+      .map(item => item.text)
+      .join(" ")
+      .trim() || "Could not generate a response.";
+
+    return res.status(200).json({ text, model: "claude-sonnet" });
 
   } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({ error: "Server error." });
+    console.error("Server error:", error);
+    return res.status(500).json({ error: "Server error. Please try again." });
   }
 }
