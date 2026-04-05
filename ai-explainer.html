@@ -4,25 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ask My Portfolio | Suriya Narayanan</title>
+  <meta name="description" content="AI-powered portfolio explainer by Suriya Narayanan. Select your role and get tailored project explanations powered by Gemma 4." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Newsreader:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,300&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #060606;
-      --surface: #0f0f0f;
+      --surface: #0c0c0c;
       --border: #1a1a1a;
-      --border-hover: #2a2a2a;
+      --border-hi: #2a2a2a;
       --text: #e5e5e5;
-      --text-muted: #737373;
-      --text-dim: #525252;
+      --muted: #737373;
+      --dim: #525252;
       --accent: #f97316;
-      --accent-soft: rgba(249, 115, 22, 0.08);
-      --accent-glow: rgba(249, 115, 22, 0.15);
+      --accent-bg: rgba(249,115,22,0.06);
+      --accent-border: rgba(249,115,22,0.4);
       --mono: 'DM Mono', monospace;
       --serif: 'Newsreader', Georgia, serif;
-      --radius: 12px;
-      --max-w: 880px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,693 +32,452 @@
       color: var(--text);
       font-family: var(--serif);
       line-height: 1.6;
-      min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Subtle grain */
-    body::before {
+    /* Grain texture */
+    body::after {
       content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 9999;
-      opacity: 0.025;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 9999; opacity: 0.02;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
     }
 
-    .wrap { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
 
     /* ── Top bar ── */
     .topbar {
-      padding: 20px 0;
+      padding: 18px 0;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 48px;
     }
-    .topbar-inner {
-      max-width: var(--max-w);
-      margin: 0 auto;
-      padding: 0 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .topbar .inner {
+      max-width: 860px; margin: 0 auto; padding: 0 24px;
+      display: flex; justify-content: space-between; align-items: center;
     }
     .topbar a {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--text-muted);
-      text-decoration: none;
-      letter-spacing: 0.05em;
+      font-family: var(--mono); font-size: 12px;
+      color: var(--muted); text-decoration: none;
       transition: color 0.2s;
     }
     .topbar a:hover { color: var(--text); }
-    .topbar .badge {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--accent);
-      border: 1px solid rgba(249,115,22,0.3);
-      padding: 3px 10px;
-      border-radius: 99px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+    .badge {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--accent); border: 1px solid var(--accent-border);
+      padding: 4px 12px; border-radius: 99px;
+      letter-spacing: 0.08em; text-transform: uppercase;
     }
 
-    /* ── Header ── */
-    .header { margin-bottom: 52px; }
-    .header .label {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 12px;
+    /* ── Hero ── */
+    .hero {
+      padding: 56px 0 48px;
     }
-    .header h1 {
-      font-family: var(--serif);
-      font-size: clamp(36px, 6vw, 56px);
-      font-weight: 300;
-      line-height: 1.08;
-      color: #fafafa;
-      letter-spacing: -0.025em;
+    .hero .kicker {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-size: clamp(34px, 5.5vw, 54px);
+      font-weight: 300; line-height: 1.08;
+      color: #fafafa; letter-spacing: -0.03em;
       margin-bottom: 16px;
     }
-    .header h1 .dot { color: var(--accent); }
-    .header .sub {
-      font-size: 17px;
-      color: var(--text-muted);
-      max-width: 540px;
-      line-height: 1.65;
-      font-weight: 300;
+    .hero h1 em {
+      font-style: italic; font-weight: 300;
+      color: var(--accent);
+    }
+    .hero .desc {
+      font-size: 17px; color: var(--muted);
+      max-width: 520px; line-height: 1.65; font-weight: 300;
     }
 
-    /* ── Section labels ── */
-    .section-label {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 14px;
+    /* ── Section label ── */
+    .label {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 14px;
     }
 
-    /* ── Role selector ── */
-    .roles { margin-bottom: 44px; }
-    .role-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+    /* ── Roles ── */
+    .roles { margin-bottom: 40px; }
+    .role-row { display: flex; flex-wrap: wrap; gap: 8px; }
     .role-btn {
-      padding: 11px 20px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: rgba(255,255,255,0.015);
-      color: var(--text-muted);
-      cursor: pointer;
-      font-family: var(--mono);
-      font-size: 13px;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
+      padding: 10px 18px; border: 1px solid var(--border);
+      border-radius: 10px; background: transparent;
+      color: var(--muted); cursor: pointer;
+      font-family: var(--mono); font-size: 12.5px;
+      display: flex; align-items: center; gap: 7px;
+      transition: all 0.25s var(--ease);
+    }
+    .role-btn:hover { border-color: var(--border-hi); color: var(--text); }
+    .role-btn.on {
+      border-color: var(--accent); background: var(--accent-bg);
+      color: var(--accent);
+    }
+    .role-hint {
+      margin-top: 8px; font-size: 13px;
+      color: var(--dim); font-style: italic;
+      min-height: 20px; transition: opacity 0.3s;
+    }
+
+    /* ── Projects ── */
+    .projects { margin-bottom: 40px; }
+    .pgrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 8px;
     }
-    .role-btn:hover {
-      border-color: var(--border-hover);
-      color: var(--text);
+    .pcard {
+      padding: 14px 16px; border: 1px solid var(--border);
+      border-radius: 10px; background: transparent;
+      cursor: pointer; text-align: left; width: 100%;
+      transition: all 0.25s var(--ease);
     }
-    .role-btn.active {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-      color: var(--accent);
+    .pcard:hover { border-color: var(--border-hi); }
+    .pcard.on { border-color: var(--accent); background: var(--accent-bg); }
+    .pcard .name {
+      font-family: var(--serif); font-size: 13.5px;
+      font-weight: 600; margin-bottom: 5px; line-height: 1.3;
+      color: var(--text); transition: color 0.2s;
     }
-    .role-desc {
-      margin-top: 8px;
-      font-size: 13px;
-      color: var(--text-dim);
-      font-style: italic;
-      min-height: 20px;
+    .pcard.on .name { color: var(--accent); }
+    .pcard .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 5px; }
+    .pcard .tag {
+      font-family: var(--mono); font-size: 9.5px;
+      padding: 2px 7px; border-radius: 99px;
+      border: 1px solid var(--border); color: var(--dim);
     }
-
-    /* ── Project grid ── */
-    .projects { margin-bottom: 44px; }
-    .project-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
-      gap: 10px;
-    }
-    .project-btn {
-      padding: 16px 18px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: rgba(255,255,255,0.012);
-      color: var(--text);
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.2s ease;
-      width: 100%;
-    }
-    .project-btn:hover {
-      border-color: var(--border-hover);
-      background: rgba(255,255,255,0.025);
-    }
-    .project-btn.active {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-    }
-    .project-btn .p-title {
-      font-family: var(--serif);
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      line-height: 1.3;
-      transition: color 0.2s;
-    }
-    .project-btn.active .p-title { color: var(--accent); }
-    .project-btn .p-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-bottom: 6px;
-    }
-    .project-btn .p-tag {
-      font-family: var(--mono);
-      font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 99px;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-    }
-    .project-btn .p-brief {
-      font-size: 12.5px;
-      color: var(--text-muted);
-      line-height: 1.5;
+    .pcard .blurb {
+      font-size: 12px; color: var(--muted); line-height: 1.45;
     }
 
-    /* ── Result area ── */
-    .result-area {
-      margin-bottom: 48px;
-      display: none;
+    /* ── Result ── */
+    .result { margin-bottom: 48px; display: none; }
+    .result.show { display: block; }
+    .rbox {
+      padding: 28px 26px; border: 1px solid var(--border);
+      border-radius: 14px; background: var(--surface);
+      position: relative; overflow: hidden;
     }
-    .result-area.visible { display: block; }
-    .result-box {
-      padding: 32px 28px;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: rgba(255,255,255,0.018);
-      position: relative;
-      overflow: hidden;
+    .rbox .bar {
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: linear-gradient(180deg, var(--accent), #c2410c, transparent);
     }
-    .result-box .accent-bar {
-      position: absolute;
-      top: 0; left: 0;
-      width: 4px; height: 100%;
-      background: linear-gradient(180deg, var(--accent), #ea580c, transparent);
-      border-radius: 4px 0 0 4px;
+    .rbox .meta {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 3px;
     }
-    .result-box .r-project {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 4px;
+    .rbox .perspective {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--accent); letter-spacing: 0.08em;
+      margin-bottom: 18px;
     }
-    .result-box .r-role {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--accent);
-      letter-spacing: 0.1em;
-      margin-bottom: 20px;
+    .rbox .model-tag {
+      font-family: var(--mono); font-size: 9px;
+      color: var(--dim); letter-spacing: 0.08em;
+      position: absolute; top: 12px; right: 16px;
     }
-    .result-box .r-text {
-      font-family: var(--serif);
-      font-size: 17px;
-      line-height: 1.8;
-      color: #d4d4d4;
-      font-weight: 300;
+    .rbox .body {
+      font-family: var(--serif); font-size: 16.5px;
+      line-height: 1.8; color: #d4d4d4; font-weight: 300;
     }
 
-    /* Loading spinner */
-    .loading {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .spinner {
-      width: 16px; height: 16px;
+    /* Spinner */
+    .spin-wrap { display: flex; align-items: center; gap: 12px; }
+    .spin {
+      width: 15px; height: 15px;
       border: 2px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      animation: sp 0.7s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading span {
-      font-size: 14px;
-      color: var(--text-dim);
-      font-style: italic;
-    }
+    @keyframes sp { to { transform: rotate(360deg); } }
+    .spin-wrap span { font-size: 13.5px; color: var(--dim); font-style: italic; }
 
-    /* Error */
-    .error-msg { color: #ef4444; font-size: 14px; }
+    .err { color: #ef4444; font-size: 14px; }
 
-    /* ── Ask follow-up ── */
+    /* ── Follow-up ── */
     .followup {
-      margin-top: 24px;
+      margin-top: 22px; padding-top: 18px;
+      border-top: 1px solid var(--border);
       display: none;
     }
-    .followup.visible { display: block; }
-    .followup-row {
-      display: flex;
-      gap: 10px;
+    .followup.show { display: block; }
+    .fu-row { display: flex; gap: 8px; }
+    .fu-input {
+      flex: 1; padding: 11px 14px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: transparent; color: var(--text);
+      font-family: var(--serif); font-size: 14.5px;
+      outline: none; transition: border-color 0.2s;
     }
-    .followup-input {
-      flex: 1;
-      padding: 12px 16px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: rgba(255,255,255,0.02);
-      color: var(--text);
-      font-family: var(--serif);
-      font-size: 15px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .followup-input::placeholder { color: var(--text-dim); }
-    .followup-input:focus { border-color: var(--accent); }
-    .followup-send {
-      padding: 12px 20px;
-      border: 1px solid var(--accent);
-      border-radius: 10px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-family: var(--mono);
-      font-size: 13px;
-      cursor: pointer;
+    .fu-input::placeholder { color: var(--dim); }
+    .fu-input:focus { border-color: var(--accent); }
+    .fu-btn {
+      padding: 11px 18px; border: 1px solid var(--accent);
+      border-radius: 10px; background: var(--accent-bg);
+      color: var(--accent); font-family: var(--mono);
+      font-size: 12px; cursor: pointer; white-space: nowrap;
       transition: all 0.2s;
-      white-space: nowrap;
     }
-    .followup-send:hover { background: var(--accent-glow); }
-    .followup-send:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
+    .fu-btn:hover { background: rgba(249,115,22,0.12); }
+    .fu-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* Follow-up answer block */
+    .fu-answer {
+      margin-top: 16px; padding: 16px 18px;
+      border-left: 2px solid var(--accent);
+      background: rgba(249,115,22,0.03);
+      border-radius: 0 8px 8px 0;
+    }
+    .fu-answer .fu-q {
+      font-size: 13px; color: var(--muted);
+      font-style: italic; margin-bottom: 8px;
+    }
+    .fu-answer .fu-a {
+      font-family: var(--serif); font-size: 15px;
+      line-height: 1.75; color: #d4d4d4; font-weight: 300;
     }
 
-    /* ── Prompt hints ── */
+    /* ── Hint ── */
     .hint {
-      text-align: center;
-      padding: 40px 0;
-      color: var(--text-dim);
-      font-size: 14px;
-      font-style: italic;
+      text-align: center; padding: 36px 0;
+      color: var(--dim); font-size: 14px; font-style: italic;
     }
 
     /* ── Footer ── */
     .footer {
       border-top: 1px solid var(--border);
-      padding: 24px 0 48px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
+      padding: 22px 0 44px;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 12px;
     }
     .footer span {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text-dim);
+      font-family: var(--mono); font-size: 10.5px; color: var(--dim);
     }
 
-    /* ── Responsive ── */
     @media (max-width: 600px) {
       .wrap { padding: 0 16px; }
-      .result-box { padding: 24px 20px; }
-      .project-grid { grid-template-columns: 1fr; }
-      .followup-row { flex-direction: column; }
+      .pgrid { grid-template-columns: 1fr; }
+      .fu-row { flex-direction: column; }
+      .hero { padding: 36px 0 32px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Top bar -->
   <div class="topbar">
-    <div class="topbar-inner">
-      <a href="index.html">← Back to Portfolio</a>
-      <span class="badge">Powered by Gemma 4</span>
+    <div class="inner">
+      <a href="index.html">← Portfolio</a>
+      <span class="badge">AI Powered</span>
     </div>
   </div>
 
   <div class="wrap">
-
-    <!-- Header -->
-    <div class="header">
-      <div class="label">Suriya Narayanan P.K.</div>
-      <h1>Ask my portfolio<span class="dot">.</span></h1>
-      <p class="sub">
-        Select who you are and pick a project. AI generates a tailored explanation
-        of my work, framed for your perspective. Then ask follow-up questions.
-      </p>
+    <div class="hero">
+      <div class="kicker">Suriya Narayanan P.K.</div>
+      <h1>Ask my portfolio<em>.</em></h1>
+      <p class="desc">Pick your role, click a project, and get a tailored explanation of my work. Then ask follow-up questions.</p>
     </div>
 
-    <!-- Role selector -->
     <div class="roles">
-      <div class="section-label">I am a...</div>
-      <div class="role-grid">
-        <button class="role-btn" data-role="recruiter" data-desc="Business impact &amp; skills match">
-          <span>🎯</span> Recruiter
-        </button>
-        <button class="role-btn" data-role="data_scientist" data-desc="Technical methodology deep-dive">
-          <span>🔬</span> Data Scientist
-        </button>
-        <button class="role-btn" data-role="hiring_manager" data-desc="Problem-solving &amp; ownership">
-          <span>📋</span> Hiring Manager
-        </button>
-        <button class="role-btn" data-role="pm" data-desc="Product thinking &amp; user impact">
-          <span>🧭</span> Product Manager
-        </button>
-      </div>
-      <div class="role-desc" id="roleDesc"></div>
+      <div class="label">I am a...</div>
+      <div class="role-row" id="roleRow"></div>
+      <div class="role-hint" id="roleHint"></div>
     </div>
 
-    <!-- Project grid -->
     <div class="projects">
-      <div class="section-label">Select a project</div>
-      <div class="project-grid" id="projectGrid"></div>
+      <div class="label">Select a project</div>
+      <div class="pgrid" id="pgrid"></div>
     </div>
 
-    <!-- Prompt hint -->
-    <div class="hint" id="hint">Pick your role above, then click any project.</div>
+    <div class="hint" id="hint">Pick your role, then click a project.</div>
 
-    <!-- Result -->
-    <div class="result-area" id="resultArea">
-      <div class="result-box">
-        <div class="accent-bar"></div>
-        <div class="r-project" id="rProject"></div>
-        <div class="r-role" id="rRole"></div>
-        <div id="rContent"></div>
+    <div class="result" id="result">
+      <div class="rbox">
+        <div class="bar"></div>
+        <div class="meta" id="rMeta"></div>
+        <div class="perspective" id="rPersp"></div>
+        <span class="model-tag" id="rModel"></span>
+        <div class="body" id="rBody"></div>
       </div>
-
-      <!-- Follow-up question -->
       <div class="followup" id="followup">
-        <div class="section-label" style="margin-top:24px">Ask a follow-up</div>
-        <div class="followup-row">
-          <input class="followup-input" id="followupInput"
-                 placeholder="e.g. How would you scale this? What was the hardest part?" />
-          <button class="followup-send" id="followupSend">Ask</button>
+        <div class="label">Ask a follow-up</div>
+        <div class="fu-row">
+          <input class="fu-input" id="fuInput" placeholder="e.g. What was the hardest part? How would you scale this?" />
+          <button class="fu-btn" id="fuBtn">Ask</button>
         </div>
+        <div id="fuAnswers"></div>
       </div>
     </div>
 
-    <!-- Footer -->
     <div class="footer">
-      <span>Powered by Gemma 4 (Google) via Vercel Serverless</span>
+      <span>Powered by Gemma 4 (Google DeepMind)</span>
       <span>suriyanarayanan.pk@gmail.com</span>
     </div>
-
   </div>
 
 <script>
-// ── Project data ──
-const PROJECTS = [
-  {
-    id: "airline",
-    title: "Airline Delay Analysis",
-    tags: ["Tableau", "Analytics", "Dashboard Story"],
-    brief: "Breaks down delay causes, airline/airport performance, and seasonality for operational insights.",
-    details: "Built an interactive Tableau dashboard story analyzing flight delay patterns across US airlines. Explored delay causes (weather, carrier, NAS, security, late aircraft), airport-level performance comparisons, and seasonal trends. Designed for operations teams to identify actionable patterns. Used calculated fields, parameter-driven filters, and story points to guide viewers from high-level trends to granular root causes."
-  },
-  {
-    id: "instacart",
-    title: "Instacart Analysis",
-    tags: ["Tableau", "Customer Insights", "Visualization"],
-    brief: "Shopping patterns and reorder behavior for growth and retention decisions.",
-    details: "Analyzed Instacart's open dataset of 3M+ grocery orders to understand shopping patterns, reorder behavior, and product affinities. Built Tableau dashboards showing peak ordering hours, department-level reorder rates, basket composition trends, and customer segmentation by purchase frequency. Found organic products had 15% higher reorder rates. Designed for product and growth teams."
-  },
-  {
-    id: "moviematch",
-    title: "MovieMatch - AI Movie Recommender",
-    tags: ["Python", "Streamlit", "Machine Learning"],
-    brief: "Collaborative filtering recommendation engine with user login and personalization.",
-    details: "Built a full-stack recommendation engine using collaborative filtering (user-user and item-item similarity) deployed as a Streamlit web app. Features include user authentication, preference capture, real-time recommendation generation. Used cosine similarity on a user-item rating matrix. Handles cold-start via popularity-based fallback. Session state management for persistent UX."
-  },
-  {
-    id: "f1",
-    title: "F1 Data Intelligence Report",
-    tags: ["API Integration", "Codex", "Sports Analytics"],
-    brief: "Interactive motorsport analytics with race performance and strategic insights.",
-    details: "Built an interactive F1 analytics platform using real-world race data from Ergast/OpenF1 APIs. Features: driver performance comparisons, qualifying vs race pace analysis, pit stop strategy breakdowns, historical trends. Used directed analysis with AI-assisted code generation (Codex). Deployed live on Vercel with responsive design."
-  },
-  {
-    id: "underarmour",
-    title: "Under Armour - Strategic Transformation",
-    tags: ["Strategy", "Analytics Vision", "Product + Ecosystem"],
-    brief: "Transformation plan: personalized performance, sustainable manufacturing, smart training.",
-    details: "Developed a strategic transformation roadmap for Under Armour on three pillars: personalized performance insights, sustainable manufacturing (DfM), and smart training ecosystems. Phased rollout from data foundation to global athlete network. Identified risks including data integration complexity, supply volatility, and smart tech adoption barriers with mitigation strategies."
-  },
-  {
-    id: "erm",
-    title: "ERM for Vighnaharta Food",
-    tags: ["Risk Management", "Operations", "Risk Framework"],
-    brief: "Practical ERM framework for dairy manufacturing, from firefighting to structured governance.",
-    details: "Designed an Enterprise Risk Management framework for a small dairy manufacturer. Created risk buckets: supply chain, quality control, financial, market, sustainability, regulatory, technology. Built quantitative scoring to prioritize threats. Proposed lightweight governance: risk champion, shared risk log, risk moments in meetings, visual tracking dashboards."
-  },
-  {
-    id: "petalpost",
-    title: "Petal Post - Plant Delivery System",
-    tags: ["SQL", "Database Design", "E-commerce"],
-    brief: "Plant e-commerce with SQL-backed system for customers, products, and orders.",
-    details: "Designed a plant e-commerce database combining Power Pages frontend with SQL Server/Azure Data Studio backend. End-to-end flow from browsing to checkout. Modeled core entities (plants, orders, customers, inventory) with normalization, foreign keys, indexing. Stored procedures for order processing and inventory management."
-  },
-  {
-    id: "royaltease",
-    title: "RoyaltEase - Digital Rights & Royalty Management",
-    tags: ["Systems Design", "DRM + Royalties", "Data Flows"],
-    brief: "Platform for automated royalty calculation, usage tracking, and secure payments.",
-    details: "Proposed a digital rights and royalty management platform with automated royalty calculation, real-time usage tracking, secure payment processing. System architecture using context diagrams and multi-level DFDs. Modeled entities: artists, content, usage logs, licenses, royalties, payments for traceable, auditable distribution."
-  },
-  {
-    id: "energy",
-    title: "Prediction of Energy Consumption",
-    tags: ["Machine Learning", "Regression", "Feature Engineering"],
-    brief: "Predictive models for household energy using building characteristics and weather data.",
-    details: "Built predictive models for household energy consumption using building characteristics (square footage, age, insulation) and weather variables (temperature, humidity, degree days). Targeted cleaning, feature engineering for stronger signal. Compared CART and linear regression. Translated results into planning-oriented energy efficiency recommendations."
-  },
-  {
-    id: "streaming",
-    title: "Netflix vs Prime - User Behavior Analytics",
-    tags: ["Python", "Pandas", "EDA"],
-    brief: "Comparative streaming platform analysis: demographics, subscriptions, device usage.",
-    details: "Comparative analysis of Netflix and Amazon Prime user datasets. Cleaned and structured two independent datasets for cross-platform comparison. Analyzed age distribution, gender breakdown, subscription models, device engagement. Found platform preference differences across age groups. Restructured into reproducible workflow separating notebooks from production scripts."
-  },
-  {
-    id: "mindreading",
-    title: "The Mind-Reading Illusion",
-    tags: ["Responsible AI", "Recommender Systems", "Privacy + Ethics"],
-    brief: "Why social media shows you what you never search or say.",
-    details: "Investigated how micro-signals (dwell time, pauses, replays, social-graph effects) reshape recommendations without explicit input. Ran user-side interaction experiments. Reviewed platform documentation vs user assumptions. Framed the gap as an ethics and transparency issue with AI governance implications."
-  }
+const ROLES = [
+  { id: "recruiter", label: "Recruiter", icon: "🎯", hint: "Business impact, skills match, ATS keywords" },
+  { id: "data_scientist", label: "Data Scientist", icon: "🔬", hint: "Methodology, algorithms, technical tradeoffs" },
+  { id: "hiring_manager", label: "Hiring Manager", icon: "📋", hint: "Problem-solving, ownership, initiative" },
+  { id: "pm", label: "Product Manager", icon: "🧭", hint: "User impact, product thinking, decision enablement" }
 ];
 
-const ROLE_PROMPTS = {
-  recruiter: "You are explaining this project to a recruiter. Focus on: quantifiable outcomes, key technical skills demonstrated, relevance to Data Analyst/Business Analyst/Product Analyst roles, and what makes this candidate stand out. Use clear, non-technical language. Mention specific tools as keywords. 3-4 sentences.",
-  data_scientist: "You are explaining this project to a senior data scientist. Focus on: methodology, analytical approach, data pipeline decisions, model selection rationale, feature engineering, technical challenges. Be specific about algorithms, libraries, data handling. 3-4 sentences.",
-  hiring_manager: "You are explaining this project to a hiring manager evaluating problem-solving ability. Focus on: what business problem was identified, how the candidate scoped the work, key decisions and rationale, what the deliverable enabled. Show ownership and initiative. 3-4 sentences.",
-  pm: "You are explaining this project to a product manager. Focus on: what user/business problem was solved, how analysis informed product/strategy decisions, the insight-to-action pipeline, scalability. Frame everything in terms of impact. 3-4 sentences."
-};
+const PROJECTS = [
+  { id: "airline", title: "Airline Delay Analysis", tags: ["Tableau","Analytics","Dashboard Story"], blurb: "Delay causes, airline performance, and seasonality insights." },
+  { id: "instacart", title: "Instacart Analysis", tags: ["Tableau","Customer Insights","Viz"], blurb: "Shopping patterns and reorder behavior for growth teams." },
+  { id: "moviematch", title: "MovieMatch - AI Recommender", tags: ["Python","Streamlit","ML"], blurb: "Collaborative filtering recommendation engine." },
+  { id: "f1", title: "F1 Data Intelligence Report", tags: ["API","Codex","Sports Analytics"], blurb: "Race performance, telemetry, and strategic insights." },
+  { id: "underarmour", title: "Under Armour - Strategy", tags: ["Strategy","Analytics Vision"], blurb: "Data-driven transformation roadmap." },
+  { id: "erm", title: "ERM - Dairy Manufacturing", tags: ["Risk Mgmt","Operations"], blurb: "Enterprise risk framework and governance." },
+  { id: "petalpost", title: "Petal Post - Plant Delivery", tags: ["SQL","Database Design"], blurb: "E-commerce database system." },
+  { id: "royaltease", title: "RoyaltEase - DRM System", tags: ["Systems Design","Data Flows"], blurb: "Digital rights and royalty management." },
+  { id: "energy", title: "Energy Consumption Prediction", tags: ["ML","Regression"], blurb: "Predictive models for household energy." },
+  { id: "streaming", title: "Netflix vs Prime - EDA", tags: ["Python","Pandas","EDA"], blurb: "Cross-platform user behavior comparison." },
+  { id: "mindreading", title: "The Mind-Reading Illusion", tags: ["Responsible AI","Privacy"], blurb: "How micro-signals shape recommendations." }
+];
 
-const ROLE_LABELS = {
-  recruiter: "Recruiter",
-  data_scientist: "Data Scientist",
-  hiring_manager: "Hiring Manager",
-  pm: "Product Manager"
-};
-
-// ── State ──
-let selectedRole = null;
-let selectedProject = null;
+let activeRole = null;
+let activeProject = null;
 let cache = {};
-let conversationHistory = [];
+
+// ── Render roles ──
+const roleRow = document.getElementById("roleRow");
+ROLES.forEach(r => {
+  const btn = document.createElement("button");
+  btn.className = "role-btn";
+  btn.innerHTML = `<span>${r.icon}</span>${r.label}`;
+  btn.onclick = () => pickRole(r, btn);
+  roleRow.appendChild(btn);
+});
 
 // ── Render projects ──
-const grid = document.getElementById("projectGrid");
+const pgrid = document.getElementById("pgrid");
 PROJECTS.forEach(p => {
   const btn = document.createElement("button");
-  btn.className = "project-btn";
+  btn.className = "pcard";
   btn.dataset.id = p.id;
   btn.innerHTML = `
-    <div class="p-title">${p.title}</div>
-    <div class="p-tags">${p.tags.map(t => `<span class="p-tag">${t}</span>`).join("")}</div>
-    <div class="p-brief">${p.brief}</div>
-  `;
-  btn.addEventListener("click", () => selectProject(p));
-  grid.appendChild(btn);
+    <div class="name">${p.title}</div>
+    <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join("")}</div>
+    <div class="blurb">${p.blurb}</div>`;
+  btn.onclick = () => pickProject(p, btn);
+  pgrid.appendChild(btn);
 });
 
-// ── Role buttons ──
-document.querySelectorAll(".role-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".role-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    selectedRole = btn.dataset.role;
-    document.getElementById("roleDesc").textContent = btn.dataset.desc;
-
-    if (selectedProject) {
-      generateExplanation(selectedProject, selectedRole);
-    } else {
-      document.getElementById("hint").textContent = "Now click any project above.";
-    }
-  });
-});
-
-// ── Select project ──
-function selectProject(project) {
-  document.querySelectorAll(".project-btn").forEach(b => b.classList.remove("active"));
-  document.querySelector(`.project-btn[data-id="${project.id}"]`).classList.add("active");
-  selectedProject = project;
-  conversationHistory = [];
-
-  if (selectedRole) {
-    generateExplanation(project, selectedRole);
-  } else {
-    document.getElementById("hint").textContent = "Now pick your role above.";
-  }
+function pickRole(role, btn) {
+  roleRow.querySelectorAll(".role-btn").forEach(b => b.classList.remove("on"));
+  btn.classList.add("on");
+  activeRole = role.id;
+  document.getElementById("roleHint").textContent = role.hint;
+  if (activeProject) generate();
+  else document.getElementById("hint").textContent = "Now click a project.";
 }
 
-// ── Generate explanation ──
-async function generateExplanation(project, role) {
-  const cacheKey = `${project.id}_${role}`;
+function pickProject(project, btn) {
+  pgrid.querySelectorAll(".pcard").forEach(b => b.classList.remove("on"));
+  btn.classList.add("on");
+  activeProject = project.id;
+  document.getElementById("fuAnswers").innerHTML = "";
+  if (activeRole) generate();
+  else document.getElementById("hint").textContent = "Now pick your role above.";
+}
 
-  document.getElementById("hint").style.display = "none";
-  const area = document.getElementById("resultArea");
-  area.classList.add("visible");
-  document.getElementById("rProject").textContent = project.title;
-  document.getElementById("rRole").textContent = "Perspective: " + ROLE_LABELS[role];
+async function generate() {
+  const key = `${activeProject}_${activeRole}`;
+  const resultEl = document.getElementById("result");
+  const hintEl = document.getElementById("hint");
+  const bodyEl = document.getElementById("rBody");
+  const modelEl = document.getElementById("rModel");
+  const fuEl = document.getElementById("followup");
 
-  // Check cache
-  if (cache[cacheKey]) {
-    document.getElementById("rContent").innerHTML =
-      `<div class="r-text">${cache[cacheKey]}</div>`;
-    document.getElementById("followup").classList.add("visible");
-    conversationHistory = [
-      { role: "user", content: buildPrompt(project, role) },
-      { role: "assistant", content: cache[cacheKey] }
-    ];
-    area.scrollIntoView({ behavior: "smooth", block: "center" });
+  hintEl.style.display = "none";
+  resultEl.classList.add("show");
+
+  const proj = PROJECTS.find(p => p.id === activeProject);
+  document.getElementById("rMeta").textContent = proj.title;
+  document.getElementById("rPersp").textContent = "Perspective: " + ROLES.find(r => r.id === activeRole).label;
+  modelEl.textContent = "";
+  fuEl.classList.remove("show");
+
+  if (cache[key]) {
+    bodyEl.innerHTML = cache[key].text;
+    modelEl.textContent = cache[key].model || "";
+    fuEl.classList.add("show");
+    resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
     return;
   }
 
-  // Show loading
-  document.getElementById("rContent").innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <span>Generating tailored explanation...</span>
-    </div>`;
-  document.getElementById("followup").classList.remove("visible");
-
-  const prompt = buildPrompt(project, role);
+  bodyEl.innerHTML = `<div class="spin-wrap"><div class="spin"></div><span>Generating...</span></div>`;
 
   try {
-    const response = await fetch("/api/generate", {
+    const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ projectId: activeProject, role: activeRole })
     });
+    const data = await res.json();
 
-    const data = await response.json();
-
-    if (data.error) {
-      document.getElementById("rContent").innerHTML =
-        `<div class="error-msg">${data.error}</div>`;
+    if (data.error && !data.text) {
+      bodyEl.innerHTML = `<div class="err">${data.error}</div>`;
       return;
     }
 
-    const text = data.text;
-    cache[cacheKey] = text;
-    conversationHistory = [
-      { role: "user", content: prompt },
-      { role: "assistant", content: text }
-    ];
-
-    document.getElementById("rContent").innerHTML =
-      `<div class="r-text">${text}</div>`;
-    document.getElementById("followup").classList.add("visible");
-    area.scrollIntoView({ behavior: "smooth", block: "center" });
-
-  } catch (err) {
-    document.getElementById("rContent").innerHTML =
-      `<div class="error-msg">Failed to connect. Please try again.</div>`;
-    console.error(err);
+    cache[key] = { text: data.text, model: data.model || "" };
+    bodyEl.textContent = data.text;
+    modelEl.textContent = data.model ? `via ${data.model}` : "";
+    fuEl.classList.add("show");
+    resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  } catch (e) {
+    bodyEl.innerHTML = `<div class="err">Connection failed. Try again.</div>`;
   }
 }
 
-function buildPrompt(project, role) {
-  return `${ROLE_PROMPTS[role]}
+// ── Follow-up ──
+const fuInput = document.getElementById("fuInput");
+const fuBtn = document.getElementById("fuBtn");
 
-Project: ${project.title}
-Tags: ${project.tags.join(", ")}
-Full Details: ${project.details}
-
-Write in first person as if Suriya Narayanan (the portfolio owner) is speaking directly. Be confident but not arrogant. No bullet points. Flowing prose. Do not start with "I built" or "I created" - vary the opening.`;
-}
-
-// ── Follow-up question ──
-const followupInput = document.getElementById("followupInput");
-const followupSend = document.getElementById("followupSend");
-
-followupSend.addEventListener("click", sendFollowup);
-followupInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendFollowup();
-});
+fuBtn.onclick = sendFollowup;
+fuInput.onkeydown = (e) => { if (e.key === "Enter") sendFollowup(); };
 
 async function sendFollowup() {
-  const question = followupInput.value.trim();
-  if (!question || !selectedProject || !selectedRole) return;
+  const q = fuInput.value.trim();
+  if (!q || !activeProject || !activeRole) return;
 
-  followupSend.disabled = true;
-  followupInput.value = "";
+  fuBtn.disabled = true;
+  fuInput.value = "";
 
-  // Append the question to the display
-  const contentEl = document.getElementById("rContent");
-  contentEl.innerHTML += `
-    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
-      <div style="font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:6px;">Follow-up</div>
-      <div style="font-size:14px; color:var(--text-muted); margin-bottom:12px; font-style:italic;">"${question}"</div>
-      <div class="loading" id="followupLoading">
-        <div class="spinner"></div>
-        <span>Thinking...</span>
-      </div>
-    </div>`;
-
-  const followupPrompt = `Context: You are Suriya Narayanan, a data analytics professional. You previously explained your project "${selectedProject.title}" to a ${ROLE_LABELS[selectedRole]}.
-
-Project details: ${selectedProject.details}
-
-The visitor now asks: "${question}"
-
-Answer in first person as Suriya. Be specific to this project. 2-3 sentences. No bullet points.`;
+  const answersEl = document.getElementById("fuAnswers");
+  const block = document.createElement("div");
+  block.className = "fu-answer";
+  block.innerHTML = `
+    <div class="fu-q">"${q}"</div>
+    <div class="fu-a"><div class="spin-wrap"><div class="spin"></div><span>Thinking...</span></div></div>`;
+  answersEl.appendChild(block);
 
   try {
-    const response = await fetch("/api/generate", {
+    const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: followupPrompt })
+      body: JSON.stringify({
+        projectId: activeProject,
+        role: activeRole,
+        followupQuestion: q
+      })
     });
-
-    const data = await response.json();
-    const loadingEl = document.getElementById("followupLoading");
-
-    if (data.error) {
-      loadingEl.innerHTML = `<div class="error-msg">${data.error}</div>`;
-    } else {
-      loadingEl.innerHTML = `<div class="r-text">${data.text}</div>`;
-    }
-  } catch (err) {
-    document.getElementById("followupLoading").innerHTML =
-      `<div class="error-msg">Failed to connect.</div>`;
+    const data = await res.json();
+    block.querySelector(".fu-a").textContent = data.text || data.error || "No response.";
+  } catch (e) {
+    block.querySelector(".fu-a").textContent = "Connection failed.";
   }
 
-  followupSend.disabled = false;
+  fuBtn.disabled = false;
+  block.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 </script>
-
 </body>
 </html>
