@@ -1,287 +1,241 @@
 // Vercel Serverless Function: /api/generate
-// Securely proxies requests to Google AI Studio (Gemma 4)
-// Handles prompt construction, response cleaning, and error handling
+// Proxies to Google AI Studio, extracts ONLY the final clean paragraph
 
-// ── Project database ──
 const PROJECTS = {
   airline: {
     title: "Airline Delay Analysis",
     tech: "Tableau, calculated fields, parameter-driven filters, story points",
-    summary: "Interactive Tableau dashboard story analyzing US flight delay patterns. Explored delay causes (weather, carrier, NAS, security, late aircraft), airport-level performance comparisons, and seasonal trends. Designed story points guiding viewers from high-level trends to granular root causes. Built for operations teams to identify actionable delay patterns."
+    summary: "Interactive Tableau dashboard analyzing US flight delay patterns. Explored delay causes (weather, carrier, NAS, security, late aircraft), airport performance comparisons, seasonal trends. Story points guide viewers from trends to root causes. Built for operations teams."
   },
   instacart: {
     title: "Instacart Analysis",
     tech: "Tableau, data visualization, customer segmentation",
-    summary: "Analyzed 3M+ grocery orders to understand shopping patterns, reorder behavior, and product affinities. Built dashboards showing peak ordering hours, department-level reorder rates, basket composition, and customer segmentation by purchase frequency. Found organic products had 15% higher reorder rates. Designed for product and growth teams to prioritize retention."
+    summary: "Analyzed 3M+ grocery orders for shopping patterns, reorder behavior, product affinities. Dashboards: peak ordering hours, department reorder rates, basket composition, customer segmentation. Organic products had 15% higher reorder rates. For product and growth teams."
   },
   moviematch: {
     title: "MovieMatch - AI Movie Recommender",
     tech: "Python, Streamlit, scikit-learn, cosine similarity, collaborative filtering",
-    summary: "Full-stack recommendation engine using collaborative filtering (user-user and item-item cosine similarity) on a user-item rating matrix. Features: user authentication, preference capture, real-time recommendations. Handles cold-start via popularity-based fallback. Deployed as Streamlit app with session state management."
+    summary: "Recommendation engine using collaborative filtering (user-user and item-item cosine similarity). Streamlit app with auth, preference capture, real-time recommendations. Cold-start fallback to popularity-based. Session state management."
   },
   f1: {
     title: "F1 Data Intelligence Report",
     tech: "JavaScript, Ergast API, OpenF1 API, Codex, Vercel",
-    summary: "Interactive F1 analytics platform using real-world race data from Ergast and OpenF1 APIs. Features: driver performance comparisons, qualifying vs race pace, pit stop strategy breakdowns, historical trends. Used directed analysis with AI-assisted code generation. Deployed live on Vercel."
+    summary: "F1 analytics platform using Ergast/OpenF1 APIs. Driver comparisons, qualifying vs race pace, pit strategy, historical trends. AI-assisted code generation. Live on Vercel."
   },
   underarmour: {
-    title: "Under Armour - Strategic Transformation & Analytics Vision",
+    title: "Under Armour Strategic Transformation",
     tech: "Strategic planning, analytics roadmap, risk assessment",
-    summary: "Strategic transformation roadmap for Under Armour on three pillars: personalized athlete performance insights, sustainable manufacturing (DfM), smart training ecosystems. Phased rollout from data foundation to global athlete network. Identified and mitigated risks: data integration complexity, supply volatility, smart tech adoption barriers."
+    summary: "Transformation roadmap: personalized athlete performance, sustainable manufacturing (DfM), smart training ecosystems. Phased rollout. Risk mitigation for data integration, supply volatility, tech adoption."
   },
   erm: {
-    title: "ERM for Vighnaharta Food (Dairy Manufacturing)",
-    tech: "Risk management frameworks, quantitative scoring, governance design",
-    summary: "Enterprise Risk Management framework for a small dairy manufacturer. Created risk buckets across 7 domains (supply chain, quality, financial, market, sustainability, regulatory, technology). Built quantitative scoring to prioritize threats. Designed lightweight governance: risk champion, shared log, meeting risk moments, visual tracking dashboards."
+    title: "ERM for Vighnaharta Food",
+    tech: "Risk frameworks, quantitative scoring, governance design",
+    summary: "ERM framework for dairy manufacturer. 7 risk domains. Quantitative threat scoring. Lightweight governance: risk champion, shared log, meeting moments, visual dashboards."
   },
   petalpost: {
-    title: "Petal Post - Plant Delivery System",
+    title: "Petal Post Plant Delivery System",
     tech: "SQL Server, Azure Data Studio, Power Pages, stored procedures",
-    summary: "Plant e-commerce database system with Power Pages frontend and SQL Server backend. End-to-end flow from browsing to checkout. Normalized entity modeling (plants, orders, customers, inventory) with foreign keys and indexing. Stored procedures for order processing and inventory management."
+    summary: "Plant e-commerce database. Power Pages frontend, SQL backend. Normalized entities, foreign keys, indexing. Stored procedures for orders and inventory."
   },
   royaltease: {
-    title: "RoyaltEase - Digital Rights & Royalty Management",
-    tech: "Systems design, DFDs, entity-relationship modeling",
-    summary: "Digital rights and royalty management platform design. Automated royalty calculation, real-time usage tracking, secure payments. Architecture via context diagrams and multi-level DFDs. Modeled entities: artists, content, usage logs, licenses, royalties, payments for auditable distribution."
+    title: "RoyaltEase Digital Rights Management",
+    tech: "Systems design, DFDs, ER modeling",
+    summary: "Digital rights/royalty platform. Automated royalty calculation, usage tracking, secure payments. Context diagrams, multi-level DFDs. Auditable distribution."
   },
   energy: {
     title: "Prediction of Energy Consumption",
     tech: "R, CART, linear regression, feature engineering",
-    summary: "Predictive models for household energy consumption using building characteristics (square footage, age, insulation) and weather variables (temperature, humidity, degree days). Feature engineering for stronger signal. Compared CART and linear regression. Translated into planning-oriented energy efficiency recommendations."
+    summary: "Predictive models for household energy using building and weather variables. Feature engineering. CART vs linear regression comparison. Energy efficiency recommendations."
   },
   streaming: {
-    title: "Netflix vs Prime - User Behavior Analytics",
+    title: "Netflix vs Prime User Behavior",
     tech: "Python, pandas, matplotlib, EDA",
-    summary: "Comparative analysis of Netflix and Amazon Prime user datasets. Standardized two independent datasets for cross-platform comparison. Analyzed demographics, subscription models, device engagement. Found platform preference differences across age groups. Built reproducible workflow separating notebooks from production scripts."
+    summary: "Comparative streaming analysis. Standardized two datasets. Demographics, subscriptions, device engagement. Age-based platform preferences. Reproducible workflow."
   },
   mindreading: {
     title: "The Mind-Reading Illusion",
-    tech: "Research methodology, platform analysis, responsible AI frameworks",
-    summary: "Investigation into how micro-signals (dwell time, pauses, replays, social-graph effects) reshape social media recommendations without explicit user input. Ran interaction experiments measuring recommendation shift speed. Compared platform disclosures vs user assumptions. Framed as ethics and transparency issue with AI governance implications."
+    tech: "Research methodology, platform analysis, responsible AI",
+    summary: "How micro-signals (dwell time, pauses, social graph) reshape recommendations silently. Interaction experiments. Platform disclosure gaps. AI governance implications."
   }
 };
 
-// ── Role-specific system prompts ──
-// These are carefully engineered to produce clean, direct output
-const SYSTEM_PROMPTS = {
-  recruiter: `You write portfolio project descriptions for recruiters.
-Your output is EXACTLY 3-4 sentences of flowing prose in first person ("I").
-Focus on: measurable outcomes, technical skills demonstrated (name specific tools), and relevance to Data Analyst / Business Analyst roles.
-Use clear, professional language. Be confident, not arrogant.
-Do NOT start with "I built" or "I created". Vary your opening.
-Output ONLY the paragraph. No headers, no labels, no bullets, no thinking.`,
-
-  data_scientist: `You write portfolio project descriptions for senior data scientists.
-Your output is EXACTLY 3-4 sentences of flowing prose in first person ("I").
-Focus on: methodology, data pipeline decisions, model/algorithm choices, feature engineering, technical tradeoffs.
-Be specific about tools, libraries, and data handling approaches.
-Do NOT start with "I built" or "I created". Vary your opening.
-Output ONLY the paragraph. No headers, no labels, no bullets, no thinking.`,
-
-  hiring_manager: `You write portfolio project descriptions for hiring managers evaluating problem-solving.
-Your output is EXACTLY 3-4 sentences of flowing prose in first person ("I").
-Focus on: what business problem was identified, how the work was scoped independently, key decisions and rationale, what the deliverable enabled.
-Show ownership and initiative.
-Do NOT start with "I built" or "I created". Vary your opening.
-Output ONLY the paragraph. No headers, no labels, no bullets, no thinking.`,
-
-  pm: `You write portfolio project descriptions for product managers.
-Your output is EXACTLY 3-4 sentences of flowing prose in first person ("I").
-Focus on: what user/business problem was solved, how analysis informed decisions, the insight-to-action pipeline, scalability.
-Frame everything as impact and decision-enablement.
-Do NOT start with "I built" or "I created". Vary your opening.
-Output ONLY the paragraph. No headers, no labels, no bullets, no thinking.`
+const ROLE_LABELS = {
+  recruiter: "Recruiter",
+  data_scientist: "Data Scientist",
+  hiring_manager: "Hiring Manager",
+  pm: "Product Manager"
 };
 
-// ── Follow-up system prompt ──
-const FOLLOWUP_SYSTEM = `You are Suriya Narayanan, a data analytics professional answering follow-up questions about your portfolio projects.
-Your output is EXACTLY 2-3 sentences of flowing prose in first person.
-Be specific to the project context provided. Be honest and confident.
-Output ONLY your answer. No headers, no labels, no bullets, no thinking.`;
+// Minimal, direct prompts that give the model no room to reason out loud
+function buildPrompt(project, role, followupQuestion) {
+  const roleFraming = {
+    recruiter: "for a recruiter, emphasizing measurable outcomes, specific technical skills, and relevance to Data Analyst and Business Analyst roles",
+    data_scientist: "for a data scientist, emphasizing methodology, algorithms, data pipeline decisions, and technical tradeoffs",
+    hiring_manager: "for a hiring manager, emphasizing the business problem identified, how work was scoped, key decisions, and what the deliverable enabled",
+    pm: "for a product manager, emphasizing user/business impact, insight-to-action pipeline, and decision enablement"
+  };
 
-// ── Response cleaner ──
-function cleanResponse(text) {
-  if (!text) return "";
+  if (followupQuestion) {
+    return `I am Suriya Narayanan. Someone asked me "${followupQuestion}" about my project "${project.title}" (${project.tech}). ${project.summary}
 
-  // If model leaked multiple drafts, take only the last clean paragraph
-  const draftSplit = text.split(/Draft\s*\d+\s*[:.]?\s*/gi);
-  if (draftSplit.length > 1) {
-    text = draftSplit[draftSplit.length - 1];
+My answer in 2-3 sentences:`;
   }
 
-  // Remove lines that are reasoning artifacts
-  const lines = text.split('\n').filter(line => {
-    const t = line.trim().toLowerCase();
-    if (!t) return false;
-    // Skip metadata/reasoning lines
-    const skipPrefixes = [
-      '* role:', '* audience:', '* goal:', '* focus', '* constraints:',
-      '* tech:', '* actions:', '* initiative:', '* business problem:',
-      '* scoping:', '* decisions', '* deliverable', '* first person',
-      '* confident', '* no bullet', "* doesn't start", '* starts with',
-      '* refining', '* sentence ', '* project:', '* check',
-      'check constraints', '3-4 sentences', 'here is the',
-      'here\'s the', 'okay, let me', 'let me ', 'i need to'
-    ];
-    for (const prefix of skipPrefixes) {
-      if (t.startsWith(prefix)) return false;
+  return `I am Suriya Narayanan. Write a 3-4 sentence paragraph describing my project ${roleFraming[role]}. Do not start with "I built" or "I created".
+
+Project: ${project.title}. Tech: ${project.tech}. What I did: ${project.summary}
+
+My description:`;
+}
+
+// Extract only the final clean paragraph from potentially messy output
+function extractFinalParagraph(raw) {
+  if (!raw) return "";
+
+  // Strategy: Gemma often outputs reasoning then the final answer.
+  // The final answer is usually the last block of continuous prose
+  // that doesn't contain reasoning markers.
+
+  let text = raw;
+
+  // Remove common thinking markers and everything before them
+  const thinkingMarkers = [
+    /[\s\S]*?(?:My description:|My answer[^:]*:)\s*/i,
+    /[\s\S]*?(?:Here is the paragraph:|Here's the paragraph:)\s*/i,
+    /[\s\S]*?(?:Final version:|Final paragraph:|Final answer:)\s*/i,
+    /[\s\S]*?(?:Output:)\s*/i
+  ];
+
+  for (const marker of thinkingMarkers) {
+    const match = text.match(marker);
+    if (match) {
+      text = text.slice(match[0].length);
     }
-    if (t.match(/^\*\*?(check|draft|refin|task|output|rule|important)/i)) return false;
-    if (t.match(/^\*\s*\*\*/)) return false;
-    if (t.match(/^(yes|no)\.\s*$/i)) return false;
+  }
+
+  // Split into paragraphs (blocks separated by double newlines)
+  const paragraphs = text
+    .split(/\n\s*\n/)
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+
+  // Filter out paragraphs that are clearly reasoning
+  const cleanParagraphs = paragraphs.filter(p => {
+    const lower = p.toLowerCase();
+    // Skip if it starts with reasoning indicators
+    if (lower.startsWith('*')) return false;
+    if (lower.startsWith('- ')) return false;
+    if (lower.startsWith('check')) return false;
+    if (lower.startsWith('constraint')) return false;
+    if (lower.startsWith('let me')) return false;
+    if (lower.startsWith('okay')) return false;
+    if (lower.startsWith('here is')) return false;
+    if (lower.startsWith('here\'s')) return false;
+    if (lower.startsWith('draft')) return false;
+    if (lower.startsWith('refin')) return false;
+    if (lower.startsWith('project:')) return false;
+    if (lower.startsWith('tech:')) return false;
+    if (lower.startsWith('role:')) return false;
+    if (lower.startsWith('focus:')) return false;
+    if (lower.startsWith('sentence ')) return false;
+    if (lower.match(/^\d+[\.\)]/)) return false;
+    if (lower.match(/^(yes|no)[.\s]/)) return false;
+    // Skip if more than 30% of lines start with * or -
+    const lines = p.split('\n');
+    const bulletLines = lines.filter(l => l.trim().startsWith('*') || l.trim().startsWith('-')).length;
+    if (bulletLines / lines.length > 0.3) return false;
+    // Must be at least 80 chars to be a real paragraph
+    if (p.length < 80) return false;
     return true;
   });
 
-  text = lines.join(' ');
+  // Take the last clean paragraph (most likely the final polished version)
+  if (cleanParagraphs.length > 0) {
+    text = cleanParagraphs[cleanParagraphs.length - 1];
+  }
 
-  // Clean formatting artifacts
+  // Final cleanup
   text = text
-    .replace(/\*\*/g, '')           // Remove bold markdown
-    .replace(/\*/g, '')             // Remove remaining asterisks
-    .replace(/^#+\s*/gm, '')        // Remove heading markers
-    .replace(/`/g, '')              // Remove code backticks
-    .replace(/\n{2,}/g, '\n')       // Collapse multiple newlines
-    .replace(/\s{2,}/g, ' ')        // Collapse multiple spaces
+    .replace(/\*\*/g, '')
+    .replace(/(?<!\w)\*(?!\w)/g, '')
+    .replace(/^#+\s*/gm, '')
+    .replace(/`/g, '')
+    .replace(/\n/g, ' ')
+    .replace(/\s{2,}/g, ' ')
     .trim();
 
   return text;
 }
 
-// ── Main handler ──
 export default async function handler(req, res) {
-  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const apiKey = process.env.GEMMA_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: "API key not configured." });
-  }
+  if (!apiKey) return res.status(500).json({ error: "API key not configured." });
 
   try {
     const { projectId, role, followupQuestion } = req.body;
-
-    if (!projectId || !role) {
-      return res.status(400).json({ error: "projectId and role are required." });
-    }
+    if (!projectId || !role) return res.status(400).json({ error: "projectId and role required." });
 
     const project = PROJECTS[projectId];
-    if (!project) {
-      return res.status(400).json({ error: "Unknown project." });
-    }
+    if (!project) return res.status(400).json({ error: "Unknown project." });
+    if (!ROLE_LABELS[role]) return res.status(400).json({ error: "Unknown role." });
 
-    let systemPrompt, userMessage;
+    const prompt = buildPrompt(project, role, followupQuestion);
 
-    if (followupQuestion) {
-      // Follow-up mode
-      systemPrompt = FOLLOWUP_SYSTEM;
-      userMessage = `Project: ${project.title}
-Tech: ${project.tech}
-Details: ${project.summary}
+    // Try Gemma 4 first, fallback to Gemini Flash
+    const models = ["gemma-4-31b-it", "gemini-2.0-flash"];
+    let text = "";
+    let usedModel = "";
 
-Question: ${followupQuestion}`;
-    } else {
-      // Initial explanation mode
-      systemPrompt = SYSTEM_PROMPTS[role];
-      if (!systemPrompt) {
-        return res.status(400).json({ error: "Unknown role." });
-      }
-      userMessage = `Project: ${project.title}
-Tech: ${project.tech}
-Details: ${project.summary}`;
-    }
-
-    // Call Gemma 4 via Google AI Studio
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: userMessage }]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            topP: 0.85,
-            topK: 30,
-            maxOutputTokens: 200,
-            stopSequences: ["Draft", "Check", "Refin", "* Role", "* Audience"]
-          }
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error("Gemma API error:", response.status, errorData);
-
-      // If Gemma 4 model not available, try fallback to Gemini Flash
-      if (response.status === 404 || response.status === 400) {
-        const fallbackResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    for (const model of models) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              systemInstruction: {
-                parts: [{ text: systemPrompt }]
-              },
-              contents: [
-                {
-                  role: "user",
-                  parts: [{ text: userMessage }]
-                }
-              ],
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
               generationConfig: {
                 temperature: 0.7,
                 topP: 0.85,
                 topK: 30,
-                maxOutputTokens: 200
+                maxOutputTokens: 300
               }
             })
           }
         );
 
-        if (!fallbackResponse.ok) {
-          return res.status(500).json({ error: "AI generation failed. Please try again." });
-        }
+        if (!response.ok) continue;
 
-        const fallbackData = await fallbackResponse.json();
-        let fallbackText = fallbackData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-        fallbackText = cleanResponse(fallbackText);
+        const data = await response.json();
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) continue;
 
-        return res.status(200).json({ text: fallbackText, model: "gemini-2.0-flash" });
+        text = extractFinalParagraph(rawText);
+        usedModel = model;
+        if (text.length >= 80) break; // Good enough, stop trying
+      } catch (e) {
+        continue; // Try next model
       }
-
-      return res.status(response.status).json({ error: "AI generation failed." });
     }
 
-    const data = await response.json();
-    let text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    text = cleanResponse(text);
-
-    if (text.length < 30) {
+    if (!text || text.length < 50) {
       return res.status(200).json({
         text: "Could not generate a clean response. Please try again.",
-        error: true
+        model: usedModel
       });
     }
 
-    return res.status(200).json({ text, model: "gemma-4-31b-it" });
+    return res.status(200).json({ text, model: usedModel });
 
   } catch (error) {
     console.error("Server error:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    return res.status(500).json({ error: "Server error. Please try again." });
   }
 }
