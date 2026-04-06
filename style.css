@@ -584,3 +584,39 @@ a{ color:inherit; }
   opacity: 1;
   transform: translateY(0);
 }
+
+.router-block {
+  margin-bottom: 40px;
+}
+
+.router-card {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.router-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.router-examples {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.router-note {
+  font-size: 13px;
+  color: var(--dim);
+  font-style: italic;
+}
+
+.project-hidden {
+  display: none !important;
+}
