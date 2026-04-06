@@ -1,703 +1,255 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ask My Portfolio | Suriya Narayanan</title>
-  <meta
-    name="description"
-    content="AI-powered portfolio explainer by Suriya Narayanan. Select your role and get tailored project explanations."
-  />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,300&display=swap"
-    rel="stylesheet"
-  >
-  <style>
-    :root {
-      --bg: #060606;
-      --surface: #0c0c0c;
-      --border: #1a1a1a;
-      --border-hi: #2a2a2a;
-      --text: #e5e5e5;
-      --muted: #737373;
-      --dim: #525252;
-      --accent: #f97316;
-      --accent-bg: rgba(249, 115, 22, 0.06);
-      --accent-border: rgba(249, 115, 22, 0.4);
-      --mono: 'DM Mono', monospace;
-      --serif: 'Newsreader', Georgia, serif;
-      --ease: cubic-bezier(0.22, 1, 0.36, 1);
-    }
+<script>
+const ROLES = [
+  { id: "recruiter", label: "Recruiter", icon: "🎯", hint: "Business impact, skills match, ATS keywords" },
+  { id: "data_scientist", label: "Data Scientist", icon: "🔬", hint: "Methodology, algorithms, technical tradeoffs" },
+  { id: "hiring_manager", label: "Hiring Manager", icon: "📋", hint: "Problem-solving, ownership, initiative" },
+  { id: "pm", label: "Product Manager", icon: "🧭", hint: "User impact, product thinking, decision enablement" }
+];
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+const PROJECTS = [
+  { id: "airline", title: "Airline Delay Analysis", tags: ["Tableau","Analytics","Dashboard Story"], blurb: "Delay causes, airline performance, and seasonality insights." },
+  { id: "instacart", title: "Instacart Analysis", tags: ["Tableau","Customer Insights","Viz"], blurb: "Shopping patterns and reorder behavior for growth teams." },
+  { id: "moviematch", title: "MovieMatch - AI Recommender", tags: ["Python","Streamlit","ML"], blurb: "Collaborative filtering recommendation engine." },
+  { id: "f1", title: "F1 Data Intelligence Report", tags: ["API","Codex","Sports Analytics"], blurb: "Race performance, telemetry, and strategic insights." },
+  { id: "underarmour", title: "Under Armour - Strategy", tags: ["Strategy","Analytics Vision"], blurb: "Data-driven transformation roadmap." },
+  { id: "erm", title: "ERM - Dairy Manufacturing", tags: ["Risk Mgmt","Operations"], blurb: "Enterprise risk framework and governance." },
+  { id: "petalpost", title: "Petal Post - Plant Delivery", tags: ["SQL","Database Design"], blurb: "E-commerce database system." },
+  { id: "royaltease", title: "RoyaltEase - DRM System", tags: ["Systems Design","Data Flows"], blurb: "Digital rights and royalty management." },
+  { id: "energy", title: "Energy Consumption Prediction", tags: ["ML","Regression"], blurb: "Predictive models for household energy." },
+  { id: "streaming", title: "Netflix vs Prime - EDA", tags: ["Python","Pandas","EDA"], blurb: "Cross-platform user behavior comparison." },
+  { id: "mindreading", title: "The Mind-Reading Illusion", tags: ["Responsible AI","Privacy"], blurb: "How micro-signals shape recommendations." }
+];
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--serif);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
+let activeRole = null;
+let activeProject = null;
+const cache = {};
 
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 9999;
-      opacity: 0.02;
-      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-    }
+const roleRow = document.getElementById("roleRow");
+const pgrid = document.getElementById("pgrid");
+const resultEl = document.getElementById("result");
+const hintEl = document.getElementById("hint");
+const bodyEl = document.getElementById("rBody");
+const fuEl = document.getElementById("followup");
+const fuInput = document.getElementById("fuInput");
+const fuBtn = document.getElementById("fuBtn");
+const fuAnswers = document.getElementById("fuAnswers");
+const rMeta = document.getElementById("rMeta");
+const rPersp = document.getElementById("rPersp");
+const modelTag = document.getElementById("rModel");
 
-    .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+if (modelTag) modelTag.style.display = "none";
 
-    .topbar {
-      padding: 18px 0;
-      border-bottom: 1px solid var(--border);
-    }
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 
-    .topbar .inner {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 0 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .topbar a {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .topbar a:hover { color: var(--text); }
-
-    .badge {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--accent);
-      border: 1px solid var(--accent-border);
-      padding: 4px 12px;
-      border-radius: 99px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .hero { padding: 56px 0 48px; }
-
-    .hero .kicker {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin-bottom: 14px;
-    }
-
-    .hero h1 {
-      font-size: clamp(34px, 5.5vw, 54px);
-      font-weight: 300;
-      line-height: 1.08;
-      color: #fafafa;
-      letter-spacing: -0.03em;
-      margin-bottom: 16px;
-    }
-
-    .hero h1 em {
-      font-style: italic;
-      font-weight: 300;
-      color: var(--accent);
-    }
-
-    .hero .desc {
-      font-size: 17px;
-      color: var(--muted);
-      max-width: 520px;
-      line-height: 1.65;
-      font-weight: 300;
-    }
-
-    .label {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin-bottom: 14px;
-    }
-
-    .roles { margin-bottom: 40px; }
-
-    .role-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .role-btn {
-      padding: 10px 18px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      font-family: var(--mono);
-      font-size: 12.5px;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      transition: all 0.25s var(--ease);
-    }
-
-    .role-btn:hover {
-      border-color: var(--border-hi);
-      color: var(--text);
-    }
-
-    .role-btn.on {
-      border-color: var(--accent);
-      background: var(--accent-bg);
-      color: var(--accent);
-    }
-
-    .role-hint {
-      margin-top: 8px;
-      font-size: 13px;
-      color: var(--dim);
-      font-style: italic;
-      min-height: 20px;
-      transition: opacity 0.3s;
-    }
-
-    .projects { margin-bottom: 40px; }
-
-    .pgrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 8px;
-    }
-
-    .pcard {
-      padding: 14px 16px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: transparent;
-      cursor: pointer;
-      text-align: left;
-      width: 100%;
-      transition: all 0.25s var(--ease);
-    }
-
-    .pcard:hover { border-color: var(--border-hi); }
-
-    .pcard.on {
-      border-color: var(--accent);
-      background: var(--accent-bg);
-    }
-
-    .pcard .name {
-      font-family: var(--serif);
-      font-size: 13.5px;
-      font-weight: 600;
-      margin-bottom: 5px;
-      line-height: 1.3;
-      color: var(--text);
-      transition: color 0.2s;
-    }
-
-    .pcard.on .name { color: var(--accent); }
-
-    .pcard .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-bottom: 5px;
-    }
-
-    .pcard .tag {
-      font-family: var(--mono);
-      font-size: 9.5px;
-      padding: 2px 7px;
-      border-radius: 99px;
-      border: 1px solid var(--border);
-      color: var(--dim);
-    }
-
-    .pcard .blurb {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .result {
-      margin-bottom: 48px;
-      display: none;
-    }
-
-    .result.show { display: block; }
-
-    .rbox {
-      padding: 28px 26px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--surface);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .rbox .bar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 3px;
-      height: 100%;
-      background: linear-gradient(180deg, var(--accent), #c2410c, transparent);
-    }
-
-    .rbox .meta {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin-bottom: 3px;
-    }
-
-    .rbox .perspective {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--accent);
-      letter-spacing: 0.08em;
-      margin-bottom: 18px;
-    }
-
-    .rbox .body {
-      font-family: var(--serif);
-      font-size: 16.5px;
-      line-height: 1.8;
-      color: #d4d4d4;
-      font-weight: 300;
-      white-space: pre-wrap;
-    }
-
-    .spin-wrap {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .spin {
-      width: 15px;
-      height: 15px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: sp 0.7s linear infinite;
-    }
-
-    @keyframes sp {
-      to { transform: rotate(360deg); }
-    }
-
-    .spin-wrap span {
-      font-size: 13.5px;
-      color: var(--dim);
-      font-style: italic;
-    }
-
-    .err {
-      color: #ef4444;
-      font-size: 14px;
-    }
-
-    .followup {
-      margin-top: 22px;
-      padding-top: 18px;
-      border-top: 1px solid var(--border);
-      display: none;
-    }
-
-    .followup.show { display: block; }
-
-    .fu-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    .fu-input {
-      flex: 1;
-      padding: 11px 14px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: transparent;
-      color: var(--text);
-      font-family: var(--serif);
-      font-size: 14.5px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .fu-input::placeholder { color: var(--dim); }
-
-    .fu-input:focus { border-color: var(--accent); }
-
-    .fu-btn {
-      padding: 11px 18px;
-      border: 1px solid var(--accent);
-      border-radius: 10px;
-      background: var(--accent-bg);
-      color: var(--accent);
-      font-family: var(--mono);
-      font-size: 12px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-
-    .fu-btn:hover { background: rgba(249, 115, 22, 0.12); }
-
-    .fu-btn:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-    }
-
-    .fu-answer {
-      margin-top: 16px;
-      padding: 16px 18px;
-      border-left: 2px solid var(--accent);
-      background: rgba(249, 115, 22, 0.03);
-      border-radius: 0 8px 8px 0;
-    }
-
-    .fu-answer .fu-q {
-      font-size: 13px;
-      color: var(--muted);
-      font-style: italic;
-      margin-bottom: 8px;
-      white-space: pre-wrap;
-    }
-
-    .fu-answer .fu-a {
-      font-family: var(--serif);
-      font-size: 15px;
-      line-height: 1.75;
-      color: #d4d4d4;
-      font-weight: 300;
-      white-space: pre-wrap;
-    }
-
-    .hint {
-      text-align: center;
-      padding: 36px 0;
-      color: var(--dim);
-      font-size: 14px;
-      font-style: italic;
-    }
-
-    .footer {
-      border-top: 1px solid var(--border);
-      padding: 22px 0 44px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .footer span {
-      font-family: var(--mono);
-      font-size: 10.5px;
-      color: var(--dim);
-    }
-
-    @media (max-width: 600px) {
-      .wrap { padding: 0 16px; }
-      .pgrid { grid-template-columns: 1fr; }
-      .fu-row { flex-direction: column; }
-      .hero { padding: 36px 0 32px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="topbar">
-    <div class="inner">
-      <a href="index.html">← Portfolio</a>
-      <span class="badge">AI Powered</span>
+function setLoading(el, label) {
+  el.innerHTML = `
+    <div class="spin-wrap">
+      <div class="spin"></div>
+      <span>${escapeHtml(label)}</span>
     </div>
-  </div>
+  `;
+}
 
-  <div class="wrap">
-    <div class="hero">
-      <div class="kicker">Suriya Narayanan P.K.</div>
-      <h1>Ask my portfolio<em>.</em></h1>
-      <p class="desc">Pick your role, click a project, and get a tailored explanation of my work. Then ask follow-up questions.</p>
-    </div>
+function setError(el, message, details = "") {
+  el.innerHTML = `
+    <div class="err">${escapeHtml(message)}</div>
+    ${details ? `<pre style="white-space:pre-wrap;color:#a3a3a3;margin-top:8px;font-size:12px;">${escapeHtml(details)}</pre>` : ""}
+  `;
+}
 
-    <div class="roles">
-      <div class="label">I am a...</div>
-      <div class="role-row" id="roleRow"></div>
-      <div class="role-hint" id="roleHint"></div>
-    </div>
+async function postGenerate(payload) {
+  const res = await fetch("/api/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
-    <div class="projects">
-      <div class="label">Select a project</div>
-      <div class="pgrid" id="pgrid"></div>
-    </div>
+  const raw = await res.text();
 
-    <div class="hint" id="hint">Pick your role, then click a project.</div>
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    return {
+      ok: false,
+      error: "Backend returned non-JSON.",
+      details: raw
+    };
+  }
 
-    <div class="result" id="result">
-      <div class="rbox">
-        <div class="bar"></div>
-        <div class="meta" id="rMeta"></div>
-        <div class="perspective" id="rPersp"></div>
-        <div class="body" id="rBody"></div>
-      </div>
+  if (!res.ok) {
+    return {
+      ok: false,
+      error: data.error || "Request failed.",
+      details: data.details || ""
+    };
+  }
 
-      <div class="followup" id="followup">
-        <div class="label">Ask a follow-up</div>
-        <div class="fu-row">
-          <input
-            class="fu-input"
-            id="fuInput"
-            placeholder="e.g. What was the hardest part? How would you scale this?"
-          />
-          <button class="fu-btn" id="fuBtn">Ask</button>
-        </div>
-        <div id="fuAnswers"></div>
-      </div>
-    </div>
+  return {
+    ok: true,
+    text: String(data.text || "").trim()
+  };
+}
 
-    <div class="footer">
-      <span>AI-powered portfolio explainer</span>
-      <span>suriyanarayanan.pk@gmail.com</span>
-    </div>
-  </div>
+ROLES.forEach((role) => {
+  const btn = document.createElement("button");
+  btn.className = "role-btn";
+  btn.type = "button";
+  btn.innerHTML = `<span>${role.icon}</span>${role.label}`;
+  btn.addEventListener("click", () => pickRole(role, btn));
+  roleRow.appendChild(btn);
+});
 
-  <script>
-    const ROLES = [
-      { id: "recruiter", label: "Recruiter", icon: "🎯", hint: "Business impact, skills match, ATS keywords" },
-      { id: "data_scientist", label: "Data Scientist", icon: "🔬", hint: "Methodology, algorithms, technical tradeoffs" },
-      { id: "hiring_manager", label: "Hiring Manager", icon: "📋", hint: "Problem-solving, ownership, initiative" },
-      { id: "pm", label: "Product Manager", icon: "🧭", hint: "User impact, product thinking, decision enablement" }
-    ];
+PROJECTS.forEach((project) => {
+  const btn = document.createElement("button");
+  btn.className = "pcard";
+  btn.type = "button";
+  btn.dataset.id = project.id;
 
-    const PROJECTS = [
-      { id: "airline", title: "Airline Delay Analysis", tags: ["Tableau", "Analytics", "Dashboard Story"], blurb: "Delay causes, airline performance, and seasonality insights." },
-      { id: "instacart", title: "Instacart Analysis", tags: ["Tableau", "Customer Insights", "Viz"], blurb: "Shopping patterns and reorder behavior for growth teams." },
-      { id: "moviematch", title: "MovieMatch - AI Recommender", tags: ["Python", "Streamlit", "ML"], blurb: "Collaborative filtering recommendation engine." },
-      { id: "f1", title: "F1 Data Intelligence Report", tags: ["API", "Codex", "Sports Analytics"], blurb: "Race performance, telemetry, and strategic insights." },
-      { id: "underarmour", title: "Under Armour - Strategy", tags: ["Strategy", "Analytics Vision"], blurb: "Data-driven transformation roadmap." },
-      { id: "erm", title: "ERM - Dairy Manufacturing", tags: ["Risk Mgmt", "Operations"], blurb: "Enterprise risk framework and governance." },
-      { id: "petalpost", title: "Petal Post - Plant Delivery", tags: ["SQL", "Database Design"], blurb: "E-commerce database system." },
-      { id: "royaltease", title: "RoyaltEase - DRM System", tags: ["Systems Design", "Data Flows"], blurb: "Digital rights and royalty management." },
-      { id: "energy", title: "Energy Consumption Prediction", tags: ["ML", "Regression"], blurb: "Predictive models for household energy." },
-      { id: "streaming", title: "Netflix vs Prime - EDA", tags: ["Python", "Pandas", "EDA"], blurb: "Cross-platform user behavior comparison." },
-      { id: "mindreading", title: "The Mind-Reading Illusion", tags: ["Responsible AI", "Privacy"], blurb: "How micro-signals shape recommendations." }
-    ];
+  const name = document.createElement("div");
+  name.className = "name";
+  name.textContent = project.title;
 
-    let activeRole = null;
-    let activeProject = null;
-    const cache = {};
+  const tags = document.createElement("div");
+  tags.className = "tags";
+  project.tags.forEach((tagText) => {
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = tagText;
+    tags.appendChild(tag);
+  });
 
-    const roleRow = document.getElementById("roleRow");
-    const pgrid = document.getElementById("pgrid");
-    const resultEl = document.getElementById("result");
-    const hintEl = document.getElementById("hint");
-    const bodyEl = document.getElementById("rBody");
-    const fuEl = document.getElementById("followup");
-    const fuInput = document.getElementById("fuInput");
-    const fuBtn = document.getElementById("fuBtn");
-    const fuAnswers = document.getElementById("fuAnswers");
+  const blurb = document.createElement("div");
+  blurb.className = "blurb";
+  blurb.textContent = project.blurb;
 
-    ROLES.forEach((role) => {
-      const btn = document.createElement("button");
-      btn.className = "role-btn";
-      btn.type = "button";
-      btn.innerHTML = `<span>${role.icon}</span>${role.label}`;
-      btn.addEventListener("click", () => pickRole(role, btn));
-      roleRow.appendChild(btn);
+  btn.appendChild(name);
+  btn.appendChild(tags);
+  btn.appendChild(blurb);
+  btn.addEventListener("click", () => pickProject(project, btn));
+  pgrid.appendChild(btn);
+});
+
+function pickRole(role, btn) {
+  roleRow.querySelectorAll(".role-btn").forEach((b) => b.classList.remove("on"));
+  btn.classList.add("on");
+  activeRole = role.id;
+  document.getElementById("roleHint").textContent = role.hint;
+
+  if (activeProject) {
+    generate();
+  } else {
+    hintEl.textContent = "Now click a project.";
+    hintEl.style.display = "block";
+  }
+}
+
+function pickProject(project, btn) {
+  pgrid.querySelectorAll(".pcard").forEach((b) => b.classList.remove("on"));
+  btn.classList.add("on");
+  activeProject = project.id;
+  fuAnswers.innerHTML = "";
+
+  if (activeRole) {
+    generate();
+  } else {
+    hintEl.textContent = "Now pick your role above.";
+    hintEl.style.display = "block";
+  }
+}
+
+async function generate() {
+  const key = `${activeProject}_${activeRole}`;
+  const project = PROJECTS.find((p) => p.id === activeProject);
+  const role = ROLES.find((r) => r.id === activeRole);
+
+  hintEl.style.display = "none";
+  resultEl.classList.add("show");
+  fuEl.classList.remove("show");
+
+  rMeta.textContent = project.title;
+  rPersp.textContent = `Perspective: ${role.label}`;
+
+  if (cache[key]) {
+    bodyEl.textContent = cache[key];
+    fuEl.classList.add("show");
+    resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  setLoading(bodyEl, "Generating...");
+
+  try {
+    const result = await postGenerate({
+      projectId: activeProject,
+      role: activeRole
     });
 
-    PROJECTS.forEach((project) => {
-      const btn = document.createElement("button");
-      btn.className = "pcard";
-      btn.type = "button";
-      btn.dataset.id = project.id;
+    if (!result.ok) {
+      setError(bodyEl, result.error, result.details);
+      return;
+    }
 
-      const name = document.createElement("div");
-      name.className = "name";
-      name.textContent = project.title;
+    cache[key] = result.text || "No response.";
+    bodyEl.textContent = cache[key];
+    fuEl.classList.add("show");
+    resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  } catch (error) {
+    setError(bodyEl, "Request could not reach /api/generate.", String(error?.message || error));
+  }
+}
 
-      const tags = document.createElement("div");
-      tags.className = "tags";
+fuBtn.addEventListener("click", sendFollowup);
+fuInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendFollowup();
+});
 
-      project.tags.forEach((tagText) => {
-        const tag = document.createElement("span");
-        tag.className = "tag";
-        tag.textContent = tagText;
-        tags.appendChild(tag);
-      });
+async function sendFollowup() {
+  const q = fuInput.value.trim();
+  if (!q || !activeProject || !activeRole) return;
 
-      const blurb = document.createElement("div");
-      blurb.className = "blurb";
-      blurb.textContent = project.blurb;
+  fuBtn.disabled = true;
+  fuInput.value = "";
 
-      btn.appendChild(name);
-      btn.appendChild(tags);
-      btn.appendChild(blurb);
-      btn.addEventListener("click", () => pickProject(project, btn));
-      pgrid.appendChild(btn);
+  const block = document.createElement("div");
+  block.className = "fu-answer";
+
+  const qEl = document.createElement("div");
+  qEl.className = "fu-q";
+  qEl.textContent = `"${q}"`;
+
+  const aEl = document.createElement("div");
+  aEl.className = "fu-a";
+  setLoading(aEl, "Thinking...");
+
+  block.appendChild(qEl);
+  block.appendChild(aEl);
+  fuAnswers.appendChild(block);
+
+  try {
+    const result = await postGenerate({
+      projectId: activeProject,
+      role: activeRole,
+      followupQuestion: q
     });
 
-    function pickRole(role, btn) {
-      roleRow.querySelectorAll(".role-btn").forEach((b) => b.classList.remove("on"));
-      btn.classList.add("on");
-      activeRole = role.id;
-      document.getElementById("roleHint").textContent = role.hint;
-
-      if (activeProject) {
-        generate();
-      } else {
-        hintEl.textContent = "Now click a project.";
-      }
+    if (!result.ok) {
+      aEl.textContent = result.details
+        ? `${result.error}\n\n${result.details}`
+        : result.error;
+    } else {
+      aEl.textContent = result.text || "No response.";
     }
+  } catch (error) {
+    aEl.textContent = `Request could not reach /api/generate.\n\n${String(error?.message || error)}`;
+  }
 
-    function pickProject(project, btn) {
-      pgrid.querySelectorAll(".pcard").forEach((b) => b.classList.remove("on"));
-      btn.classList.add("on");
-      activeProject = project.id;
-      fuAnswers.innerHTML = "";
-
-      if (activeRole) {
-        generate();
-      } else {
-        hintEl.textContent = "Now pick your role above.";
-      }
-    }
-
-    function setLoading(el, label) {
-      el.innerHTML = `
-        <div class="spin-wrap">
-          <div class="spin"></div>
-          <span>${label}</span>
-        </div>
-      `;
-    }
-
-    function setError(el, message) {
-      el.innerHTML = `<div class="err">${message}</div>`;
-    }
-
-    async function generate() {
-      const key = `${activeProject}_${activeRole}`;
-      const project = PROJECTS.find((p) => p.id === activeProject);
-      const role = ROLES.find((r) => r.id === activeRole);
-
-      hintEl.style.display = "none";
-      resultEl.classList.add("show");
-      fuEl.classList.remove("show");
-
-      document.getElementById("rMeta").textContent = project.title;
-      document.getElementById("rPersp").textContent = `Perspective: ${role.label}`;
-
-      if (cache[key]) {
-        bodyEl.textContent = cache[key];
-        fuEl.classList.add("show");
-        resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
-        return;
-      }
-
-      setLoading(bodyEl, "Generating...");
-
-      try {
-        const res = await fetch("/api/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            projectId: activeProject,
-            role: activeRole
-          })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          setError(bodyEl, data.error || "Something went wrong.");
-          return;
-        }
-
-        if (!data.text || typeof data.text !== "string") {
-          setError(bodyEl, "No response received.");
-          return;
-        }
-
-        cache[key] = data.text.trim();
-        bodyEl.textContent = cache[key];
-        fuEl.classList.add("show");
-        resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
-      } catch (error) {
-        setError(bodyEl, "Connection failed. Try again.");
-      }
-    }
-
-    fuBtn.addEventListener("click", sendFollowup);
-    fuInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendFollowup();
-    });
-
-    async function sendFollowup() {
-      const q = fuInput.value.trim();
-      if (!q || !activeProject || !activeRole) return;
-
-      fuBtn.disabled = true;
-      fuInput.value = "";
-
-      const block = document.createElement("div");
-      block.className = "fu-answer";
-
-      const qEl = document.createElement("div");
-      qEl.className = "fu-q";
-      qEl.textContent = `"${q}"`;
-
-      const aEl = document.createElement("div");
-      aEl.className = "fu-a";
-      setLoading(aEl, "Thinking...");
-
-      block.appendChild(qEl);
-      block.appendChild(aEl);
-      fuAnswers.appendChild(block);
-
-      try {
-        const res = await fetch("/api/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            projectId: activeProject,
-            role: activeRole,
-            followupQuestion: q
-          })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          aEl.textContent = data.error || "Something went wrong.";
-        } else {
-          aEl.textContent = data.text || "No response.";
-        }
-      } catch (error) {
-        aEl.textContent = "Connection failed.";
-      }
-
-      fuBtn.disabled = false;
-      block.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  </script>
-</body>
-</html>
+  fuBtn.disabled = false;
+  block.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+</script>

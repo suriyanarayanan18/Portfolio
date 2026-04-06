@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+const MODEL = "gemini-2.0-flash";
 
 const PROJECTS = {
   airline: {
@@ -80,14 +80,11 @@ const ROLES = {
     "a product manager. Emphasize user impact, business value, decision-making, and scalability."
 };
 
-const apiKey = process.env.GEMINI_API_KEY || process.env.GEMMA_API_KEY;
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
-
-function buildInput({ project, role, followupQuestion }) {
+function buildRequest(project, role, followupQuestion) {
   const isFollowup =
     typeof followupQuestion === "string" && followupQuestion.trim().length > 0;
 
-  const systemInstruction = isFollowup
+  const systemText = isFollowup
     ? [
         "You are Suriya Narayanan answering in first person.",
         "Return only the final answer.",
@@ -103,7 +100,7 @@ function buildInput({ project, role, followupQuestion }) {
         "Use exactly 4 sentences."
       ].join(" ");
 
-  const contents = isFollowup
+  const userText = isFollowup
     ? [
         `Project: ${project.title}`,
         `Tools: ${project.tech}`,
@@ -117,13 +114,52 @@ function buildInput({ project, role, followupQuestion }) {
         `Details: ${project.detail}`
       ].join("\n");
 
-  return { systemInstruction, contents, isFollowup };
+  return {
+    system_instruction: {
+      parts: [{ text: systemText }]
+    },
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: userText }]
+      }
+    ],
+    generationConfig: {
+      temperature: 0.2,
+      topP: 0.8,
+      maxOutputTokens: isFollowup ? 140 : 220,
+      response_mime_type: "application/json",
+      response_schema: {
+        type: "OBJECT",
+        properties: {
+          answer: { type: "STRING" }
+        },
+        required: ["answer"]
+      }
+    }
+  };
 }
 
-function normalizeAnswer(text) {
+function stripCodeFence(text) {
   return String(text || "")
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+}
+
+function cleanPlainText(text) {
+  return String(text || "")
+    .replace(/\*\*/g, "")
+    .replace(/`/g, "")
+    .replace(/^#+\s*/gm, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function getModelText(apiData) {
+  const parts = apiData?.candidates?.[0]?.content?.parts || [];
+  return parts.map((p) => p.text || "").join("\n").trim();
 }
 
 export default async function handler(req, res) {
@@ -136,12 +172,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  if (!apiKey || !ai) {
-    return res.status(500).json({ error: "API key not configured." });
+  const apiKey =
+    process.env.GEMINI_API_KEY ||
+    process.env.GEMMA_API_KEY ||
+    process.env.GOOGLE_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({
+      error: "API key not configured. Add GEMINI_API_KEY or GEMMA_API_KEY in Vercel."
+    });
   }
 
   try {
-    const { projectId, role, followupQuestion } = req.body ?? {};
+    const { projectId, role, followupQuestion } = req.body || {};
 
     if (!projectId || !role) {
       return res.status(400).json({ error: "projectId and role required." });
@@ -156,51 +199,61 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Unknown role." });
     }
 
-    const { systemInstruction, contents, isFollowup } = buildInput({
-      project,
-      role,
-      followupQuestion
-    });
+    const payload = buildRequest(project, role, followupQuestion);
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents,
-      config: {
-        systemInstruction,
-        temperature: 0.2,
-        topP: 0.8,
-        maxOutputTokens: isFollowup ? 140 : 220,
-        candidateCount: 1,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            answer: { type: "string" }
-          },
-          required: ["answer"]
-        }
+    const googleRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       }
-    });
+    );
+
+    const raw = await googleRes.text();
+
+    let apiData = null;
+    try {
+      apiData = JSON.parse(raw);
+    } catch (parseErr) {
+      console.error("Gemini returned non-JSON:", raw);
+      return res.status(500).json({
+        error: "Gemini returned non-JSON.",
+        details: raw.slice(0, 1500)
+      });
+    }
+
+    if (!googleRes.ok) {
+      console.error("Gemini API error:", googleRes.status, apiData);
+      return res.status(googleRes.status).json({
+        error:
+          apiData?.error?.message || `Gemini API error (${googleRes.status})`,
+        details: JSON.stringify(apiData).slice(0, 1500)
+      });
+    }
+
+    const modelText = getModelText(apiData);
 
     let answer = "";
-
     try {
-      const parsed = JSON.parse(response.text || "{}");
-      answer = normalizeAnswer(parsed.answer);
-    } catch (err) {
-      answer = "";
+      const parsed = JSON.parse(stripCodeFence(modelText));
+      answer = String(parsed?.answer || "").trim();
+    } catch {
+      answer = cleanPlainText(modelText);
     }
 
     if (!answer || answer.length < 10) {
-      return res
-        .status(200)
-        .json({ text: "Could not generate. Please try again." });
+      return res.status(200).json({
+        text: "Could not generate. Please try again."
+      });
     }
 
     return res.status(200).json({ text: answer });
   } catch (error) {
     console.error("Generate error:", error);
-    return res.status(500).json({ error: "Server error." });
+    return res.status(500).json({
+      error: "Server error.",
+      details: String(error?.message || error)
+    });
   }
 }
