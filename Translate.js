@@ -1,295 +1,281 @@
-/* ── Portfolio Language Switcher ──
-   Add this script tag to the bottom of index.html, before </body>
-   Usage: <script src="translate.js"></script>
-*/
+(() => {
+  const API_ENDPOINT = "/api/translate";
+  const LANGS = {
+    en: "English",
+    es: "Spanish",
+    ta: "Tamil"
+  };
 
-(function () {
-  // ── Config ──
-  const LANGUAGES = [
-    { code: "en", label: "EN", name: "English" },
-    { code: "ta", label: "தமிழ்", name: "Tamil" },
-    { code: "es", label: "ES", name: "Español" }
-  ];
+  const cache = {
+    en: null,
+    es: null,
+    ta: null
+  };
 
+  let targets = [];
   let currentLang = "en";
-  let originalTexts = {}; // Store originals for reverting
-  let translationCache = {}; // Cache translations per language
+  let isBusy = false;
 
-  // ── CSS for the language switcher ──
-  const style = document.createElement("style");
-  style.textContent = `
-    .lang-switcher {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 10000;
-      display: flex;
-      gap: 6px;
-      background: #111;
-      border: 1px solid #2a2a2a;
-      border-radius: 12px;
-      padding: 6px 8px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-    }
-    .lang-btn {
-      padding: 8px 14px;
-      border: 1px solid transparent;
-      border-radius: 8px;
-      background: transparent;
-      color: #999;
-      font-family: -apple-system, sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-    .lang-btn:hover {
-      color: #fff;
-      background: rgba(255,255,255,0.05);
-    }
-    .lang-btn.active {
-      color: #f97316;
-      border-color: rgba(249,115,22,0.4);
-      background: rgba(249,115,22,0.08);
-    }
-    .lang-btn.loading {
-      opacity: 0.5;
-      pointer-events: none;
-    }
-    .lang-loading-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #f97316, #fb923c);
-      z-index: 10001;
-      transition: width 0.3s ease;
-      border-radius: 0 2px 2px 0;
-    }
-    @media (max-width: 600px) {
-      .lang-switcher {
-        bottom: 16px;
-        right: 16px;
-      }
-      .lang-btn {
-        padding: 6px 10px;
-        font-size: 12px;
-      }
-    }
-  `;
-  document.head.appendChild(style);
+  function shouldSkipText(text) {
+    const t = String(text || "").trim();
 
-  // ── Selectors for translatable elements ──
-  // These CSS selectors target the text content on your portfolio
-  const TRANSLATABLE_SELECTORS = [
-    // Hero
-    ".hero_kicker",
-    ".hero_title",
-    ".hero_subtitle",
-    ".hero_scroll",
-    // About section
-    ".sectionTitle",
-    ".sectionNote",
-    ".aboutText .lead",
-    ".aboutText p:not(.lead)",
-    ".pill",
-    // Timeline
-    ".timelineRole",
-    ".timelineOrg",
-    // Project cards
-    ".projectTitle",
-    ".projectDesc",
-    ".projectMeta",
-    // Skills
-    ".skillLabel",
-    ".skillBlock h3",
-    ".skillBlock li",
-    // Certifications
-    ".certTitle",
-    ".certMeta",
-    // Contact
-    ".contactLabel",
-    // Footer
-    ".footerTitle",
-    // Buttons (only text content)
-    ".btn"
-  ];
+    if (!t) return true;
+    if (t.length < 2) return true;
+    if (/^[\d\s\-–—•|/\\.,:;!?()[\]{}'"`~@#$%^&*_+=<>]+$/.test(t)) return true;
+    if (/^[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(t)) return true;
+    if (/^(https?:\/\/|www\.)/i.test(t)) return true;
 
-  // ── Gather all translatable text ──
-  function gatherTexts() {
-    const elements = [];
-    const texts = [];
+    return false;
+  }
 
-    TRANSLATABLE_SELECTORS.forEach(selector => {
-      document.querySelectorAll(selector).forEach(el => {
-        const text = el.textContent.trim();
-        if (text && text.length > 0 && text.length < 500) {
-          elements.push(el);
-          texts.push(text);
+  function hasNoTranslateAncestor(node) {
+    let el = node.parentElement;
+    while (el) {
+      if (el.dataset && el.dataset.noTranslate === "true") return true;
+      el = el.parentElement;
+    }
+    return false;
+  }
+
+  function collectTextTargets() {
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+
+          const tag = parent.tagName;
+          if (["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "PRE", "SVG"].includes(tag)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+
+          if (hasNoTranslateAncestor(node)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+
+          if (shouldSkipText(node.nodeValue)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+
+          return NodeFilter.FILTER_ACCEPT;
         }
+      }
+    );
+
+    const found = [];
+    let node;
+
+    while ((node = walker.nextNode())) {
+      found.push({
+        type: "text",
+        node,
+        original: node.nodeValue
       });
-    });
-
-    return { elements, texts };
-  }
-
-  // ── Store originals on first run ──
-  function storeOriginals() {
-    if (Object.keys(originalTexts).length > 0) return;
-
-    const { elements, texts } = gatherTexts();
-    elements.forEach((el, i) => {
-      el.dataset.translateId = i;
-      originalTexts[i] = texts[i];
-    });
-  }
-
-  // ── Restore English ──
-  function restoreEnglish() {
-    Object.keys(originalTexts).forEach(id => {
-      const el = document.querySelector(`[data-translate-id="${id}"]`);
-      if (el) el.textContent = originalTexts[id];
-    });
-    currentLang = "en";
-    updateButtons();
-  }
-
-  // ── Translate to target language ──
-  async function translateTo(langCode) {
-    if (langCode === "en") {
-      restoreEnglish();
-      return;
     }
 
-    storeOriginals();
+    document.querySelectorAll("input[placeholder], textarea[placeholder]").forEach((el) => {
+      if (el.closest('[data-no-translate="true"]')) return;
 
-    // Check cache
-    if (translationCache[langCode]) {
-      applyTranslations(translationCache[langCode]);
-      currentLang = langCode;
-      updateButtons();
-      return;
-    }
-
-    // Show loading
-    showLoading(true);
-    setButtonsLoading(true);
-
-    const texts = Object.values(originalTexts);
-
-    try {
-      // Split into batches of 25 to avoid token limits
-      const batchSize = 25;
-      const allTranslated = [];
-
-      for (let i = 0; i < texts.length; i += batchSize) {
-        const batch = texts.slice(i, i + batchSize);
-        updateLoadingBar((i / texts.length) * 100);
-
-        const response = await fetch("/api/translate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ texts: batch, targetLang: langCode })
+      const ph = el.getAttribute("placeholder");
+      if (!shouldSkipText(ph)) {
+        found.push({
+          type: "placeholder",
+          node: el,
+          original: ph
         });
-
-        if (!response.ok) {
-          throw new Error("Translation API failed");
-        }
-
-        const data = await response.json();
-        allTranslated.push(...data.translated);
       }
-
-      // Cache the results
-      const translationMap = {};
-      Object.keys(originalTexts).forEach((id, i) => {
-        translationMap[id] = allTranslated[i] || originalTexts[id];
-      });
-
-      translationCache[langCode] = translationMap;
-      applyTranslations(translationMap);
-      currentLang = langCode;
-
-    } catch (error) {
-      console.error("Translation error:", error);
-      // Silently fall back to English
-      restoreEnglish();
-    }
-
-    showLoading(false);
-    setButtonsLoading(false);
-    updateButtons();
-  }
-
-  // ── Apply translations to DOM ──
-  function applyTranslations(translationMap) {
-    Object.keys(translationMap).forEach(id => {
-      const el = document.querySelector(`[data-translate-id="${id}"]`);
-      if (el) el.textContent = translationMap[id];
-    });
-  }
-
-  // ── UI: Create language switcher ──
-  function createSwitcher() {
-    const container = document.createElement("div");
-    container.className = "lang-switcher";
-    container.id = "langSwitcher";
-
-    LANGUAGES.forEach(lang => {
-      const btn = document.createElement("button");
-      btn.className = "lang-btn" + (lang.code === "en" ? " active" : "");
-      btn.dataset.lang = lang.code;
-      btn.textContent = lang.label;
-      btn.title = lang.name;
-      btn.addEventListener("click", () => translateTo(lang.code));
-      container.appendChild(btn);
     });
 
-    document.body.appendChild(container);
-
-    // Create loading bar (hidden initially)
-    const bar = document.createElement("div");
-    bar.className = "lang-loading-bar";
-    bar.id = "langLoadingBar";
-    bar.style.width = "0%";
-    bar.style.display = "none";
-    document.body.appendChild(bar);
+    targets = found;
+    cache.en = targets.map((t) => t.original);
   }
 
-  function updateButtons() {
-    document.querySelectorAll(".lang-btn").forEach(btn => {
+  function applyTranslations(lang, translatedList) {
+    targets.forEach((target, i) => {
+      const value = translatedList[i] || target.original;
+
+      if (target.type === "text") {
+        target.node.nodeValue = value;
+      } else if (target.type === "placeholder") {
+        target.node.setAttribute("placeholder", value);
+      }
+    });
+
+    document.documentElement.lang = lang === "ta" ? "ta" : lang === "es" ? "es" : "en";
+    currentLang = lang;
+    updateActiveButton();
+  }
+
+  function restoreEnglish() {
+    if (!cache.en) return;
+    applyTranslations("en", cache.en);
+  }
+
+  function updateActiveButton() {
+    document.querySelectorAll(".lang-btn").forEach((btn) => {
       btn.classList.toggle("active", btn.dataset.lang === currentLang);
     });
   }
 
-  function setButtonsLoading(loading) {
-    document.querySelectorAll(".lang-btn").forEach(btn => {
-      btn.classList.toggle("loading", loading);
-    });
+  function setStatus(text, isError = false) {
+    const el = document.getElementById("langStatus");
+    if (!el) return;
+    el.textContent = text;
+    el.style.color = isError ? "#ff8a8a" : "#8a8a8a";
   }
 
-  function showLoading(show) {
-    const bar = document.getElementById("langLoadingBar");
-    if (bar) {
-      bar.style.display = show ? "block" : "none";
-      if (!show) bar.style.width = "0%";
+  async function translatePage(lang) {
+    if (isBusy || lang === currentLang) return;
+
+    if (lang === "en") {
+      restoreEnglish();
+      setStatus("Showing original English");
+      return;
+    }
+
+    if (cache[lang]) {
+      applyTranslations(lang, cache[lang]);
+      setStatus(`Showing ${LANGS[lang]}`);
+      return;
+    }
+
+    try {
+      isBusy = true;
+      setStatus(`Translating to ${LANGS[lang]}...`);
+
+      const texts = targets.map((t) => t.original);
+
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          texts,
+          targetLang: lang === "es" ? "Spanish" : "Tamil"
+        })
+      });
+
+      const raw = await res.text();
+
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        setStatus("Translation failed", true);
+        console.error("Non-JSON translation response:", raw);
+        return;
+      }
+
+      if (!res.ok) {
+        setStatus("Translation failed", true);
+        console.error("Translation API error:", data);
+        return;
+      }
+
+      cache[lang] = Array.isArray(data.translated) ? data.translated : texts;
+      applyTranslations(lang, cache[lang]);
+      setStatus(`Showing ${LANGS[lang]}`);
+    } catch (err) {
+      setStatus("Translation failed", true);
+      console.error(err);
+    } finally {
+      isBusy = false;
     }
   }
 
-  function updateLoadingBar(percent) {
-    const bar = document.getElementById("langLoadingBar");
-    if (bar) bar.style.width = Math.min(percent + 10, 95) + "%";
+  function injectLanguageSwitcher() {
+    const wrap = document.createElement("div");
+    wrap.id = "langSwitcher";
+    wrap.dataset.noTranslate = "true";
+
+    wrap.innerHTML = `
+      <div class="lang-inner">
+        <div class="lang-label">Language</div>
+        <div class="lang-buttons">
+          <button class="lang-btn active" data-lang="en" type="button">EN</button>
+          <button class="lang-btn" data-lang="es" type="button">ES</button>
+          <button class="lang-btn" data-lang="ta" type="button">TA</button>
+        </div>
+        <div class="lang-status" id="langStatus">Showing original English</div>
+      </div>
+    `;
+
+    const style = document.createElement("style");
+    style.textContent = `
+      #langSwitcher {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 9998;
+        background: rgba(12,12,12,0.94);
+        border: 1px solid rgba(249,115,22,0.35);
+        border-radius: 14px;
+        padding: 12px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      }
+      #langSwitcher .lang-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 170px;
+      }
+      #langSwitcher .lang-label {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #f97316;
+        font-family: 'DM Mono', monospace;
+      }
+      #langSwitcher .lang-buttons {
+        display: flex;
+        gap: 6px;
+      }
+      #langSwitcher .lang-btn {
+        border: 1px solid #2a2a2a;
+        background: transparent;
+        color: #d4d4d4;
+        border-radius: 9px;
+        padding: 8px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        font-family: 'DM Mono', monospace;
+      }
+      #langSwitcher .lang-btn.active {
+        border-color: #f97316;
+        color: #f97316;
+        background: rgba(249,115,22,0.08);
+      }
+      #langSwitcher .lang-status {
+        font-size: 11px;
+        color: #8a8a8a;
+        font-family: 'DM Mono', monospace;
+      }
+      @media (max-width: 640px) {
+        #langSwitcher {
+          left: 12px;
+          right: 12px;
+          bottom: 12px;
+        }
+        #langSwitcher .lang-inner {
+          min-width: 0;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(wrap);
+
+    wrap.querySelectorAll(".lang-btn").forEach((btn) => {
+      btn.addEventListener("click", () => translatePage(btn.dataset.lang));
+    });
   }
 
-  // ── Initialize ──
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-      storeOriginals();
-      createSwitcher();
-    });
-  } else {
-    storeOriginals();
-    createSwitcher();
-  }
+  window.addEventListener("DOMContentLoaded", () => {
+    collectTextTargets();
+    injectLanguageSwitcher();
+  });
 })();

@@ -1,98 +1,135 @@
-// Vercel Serverless Function: /api/translate
-// Translates portfolio text using Gemini 2.0 Flash
-// Simple single-task prompt = no thinking leaks
+const MODEL = "gemma-4-31b-it";
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const apiKey = process.env.GEMMA_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "API key not configured." });
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const apiKey =
+    process.env.GEMINI_API_KEY ||
+    process.env.GEMMA_API_KEY ||
+    process.env.GOOGLE_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: "API key not configured." });
+  }
 
   try {
-    const { texts, targetLang } = req.body;
+    const { texts, targetLang } = req.body || {};
 
-    if (!texts || !targetLang) {
-      return res.status(400).json({ error: "texts array and targetLang required." });
+    if (!Array.isArray(texts) || !texts.length || typeof targetLang !== "string") {
+      return res.status(400).json({
+        error: "texts array and targetLang are required."
+      });
     }
 
-    if (!Array.isArray(texts) || texts.length === 0) {
-      return res.status(400).json({ error: "texts must be a non-empty array." });
-    }
+    const safeTexts = texts.map((t) => String(t || "")).slice(0, 250);
 
-    const langNames = {
-      ta: "Tamil",
-      es: "Spanish"
+    const requestBody = {
+      system_instruction: {
+        parts: [
+          {
+            text: [
+              "You are a translation engine for a portfolio website.",
+              "Translate each input string into the requested target language.",
+              "Return JSON only.",
+              "Do not explain anything.",
+              "Keep tone professional and natural.",
+              "Preserve line breaks where reasonable.",
+              "Do not translate proper nouns or brand names unless natural usage clearly requires it.",
+              "Keep names like Suriya Narayanan, Tableau, Power BI, SQL, Python, GitHub, LinkedIn, Syracuse University unchanged when appropriate."
+            ].join(" ")
+          }
+        ]
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: JSON.stringify({
+                targetLang,
+                texts: safeTexts
+              })
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 4000,
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          properties: {
+            translated: {
+              type: "array",
+              items: { type: "string" }
+            }
+          },
+          required: ["translated"]
+        }
+      }
     };
 
-    const langName = langNames[targetLang];
-    if (!langName) return res.status(400).json({ error: "Unsupported language." });
-
-    // Build a single prompt with all texts to translate in one API call
-    // This is efficient (1 call instead of 20+) and translation is a clean single-task
-    const numberedTexts = texts.map((t, i) => `[${i}] ${t}`).join("\n");
-
-    const prompt = `Translate each numbered line below from English to ${langName}. 
-Keep the same numbering format [0], [1], [2] etc.
-Translate ONLY the text. Do not add explanations, notes, or commentary.
-Keep any technical terms, tool names, and proper nouns in English (like Tableau, Python, SQL, Streamlit, Power BI, Vercel, Codex).
-
-${numberedTexts}`;
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    const googleRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.3,
-            topP: 0.8,
-            maxOutputTokens: 4000
-          }
-        })
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body: JSON.stringify(requestBody)
       }
     );
 
-    if (!response.ok) {
-      const err = await response.text();
-      console.error("API error:", response.status, err);
-      return res.status(500).json({ error: "Translation failed." });
+    const raw = await googleRes.text();
+
+    let apiData;
+    try {
+      apiData = JSON.parse(raw);
+    } catch {
+      return res.status(500).json({
+        error: "Gemma returned non-JSON.",
+        details: raw.slice(0, 1200)
+      });
     }
 
-    const data = await response.json();
-    const rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    // Parse the numbered translations back into an array
-    const translated = [];
-    const lines = rawOutput.split("\n").filter(l => l.trim());
-
-    for (let i = 0; i < texts.length; i++) {
-      // Find the line starting with [i]
-      const pattern = new RegExp(`\\[${i}\\]\\s*(.+)`);
-      let found = false;
-      for (const line of lines) {
-        const match = line.match(pattern);
-        if (match) {
-          translated.push(match[1].trim());
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        // Fallback: use original English text
-        translated.push(texts[i]);
-      }
+    if (!googleRes.ok) {
+      return res.status(googleRes.status).json({
+        error: apiData?.error?.message || `Gemma API error (${googleRes.status})`,
+        details: JSON.stringify(apiData).slice(0, 1200)
+      });
     }
 
-    return res.status(200).json({ translated, lang: targetLang });
+    const rawText =
+      apiData?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
 
+    let parsed;
+    try {
+      parsed = JSON.parse(rawText);
+    } catch {
+      return res.status(500).json({
+        error: "Translation output was not valid JSON.",
+        details: rawText.slice(0, 1200)
+      });
+    }
+
+    const translated = Array.isArray(parsed.translated) ? parsed.translated : [];
+
+    return res.status(200).json({
+      translated: safeTexts.map((t, i) => translated[i] || t)
+    });
   } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({ error: "Server error." });
+    return res.status(500).json({
+      error: "Server error.",
+      details: String(error?.message || error)
+    });
   }
-}
+};
