@@ -6,7 +6,7 @@
   <title>Ask My Portfolio | Suriya Narayanan</title>
   <meta
     name="description"
-    content="AI-powered portfolio explainer by Suriya Narayanan. Select your role and get tailored project explanations."
+    content="Interactive portfolio router and project explainer by Suriya Narayanan."
   />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,7 +99,7 @@
     }
 
     .hero {
-      padding: 56px 0 48px;
+      padding: 56px 0 32px;
     }
 
     .hero .kicker {
@@ -129,7 +129,7 @@
     .hero .desc {
       font-size: 17px;
       color: var(--muted);
-      max-width: 520px;
+      max-width: 620px;
       line-height: 1.65;
       font-weight: 300;
     }
@@ -142,7 +142,38 @@
       color: var(--dim);
       margin-bottom: 14px;
     }
-    
+
+    .router-block {
+      margin-bottom: 40px;
+    }
+
+    .router-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+
+    .router-title {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .router-examples {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .router-note {
+      font-size: 13px;
+      color: var(--dim);
+      font-style: italic;
+    }
 
     .roles {
       margin-bottom: 40px;
@@ -255,6 +286,10 @@
       line-height: 1.45;
     }
 
+    .project-hidden {
+      display: none !important;
+    }
+
     .hint {
       text-align: center;
       padding: 36px 0;
@@ -315,31 +350,6 @@
       font-weight: 300;
       white-space: pre-wrap;
       word-break: break-word;
-    }
-
-    .spin-wrap {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .spin {
-      width: 15px;
-      height: 15px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: sp 0.7s linear infinite;
-    }
-
-    @keyframes sp {
-      to { transform: rotate(360deg); }
-    }
-
-    .spin-wrap span {
-      font-size: 13.5px;
-      color: var(--dim);
-      font-style: italic;
     }
 
     .err {
@@ -462,7 +472,7 @@
       }
 
       .hero {
-        padding: 36px 0 32px;
+        padding: 36px 0 24px;
       }
     }
   </style>
@@ -471,7 +481,7 @@
   <div class="topbar">
     <div class="inner">
       <a href="index.html">← Portfolio</a>
-      <span class="badge">AI Powered</span>
+      <span class="badge">Gemma Router</span>
     </div>
   </div>
 
@@ -480,29 +490,30 @@
       <div class="kicker">Suriya Narayanan P.K.</div>
       <h1>Ask my portfolio<em>.</em></h1>
       <p class="desc">
-        Pick your role, click a project, and get a tailored explanation of my work. Then ask follow-up questions.
+        Use the Gemma router to navigate my work naturally, then choose a role to see a clean tailored project explanation.
       </p>
     </div>
-  <div class="router-block">
-  <div class="label">Gemma Router</div>
-  <div class="router-card">
-    <div class="router-title">Try commands like:</div>
-    <div class="router-examples">
-      “show Tableau work” · “open the F1 project” · “download resume” · “explain the airline project for a recruiter”
-    </div>
 
-    <div class="fu-row" style="margin-top: 14px;">
-      <input
-        class="fu-input"
-        id="routerInput"
-        placeholder="Type a command for my portfolio..."
-      />
-      <button class="fu-btn" id="routerBtn" type="button">Run</button>
-    </div>
+    <div class="router-block">
+      <div class="label">Gemma Router</div>
+      <div class="router-card">
+        <div class="router-title">Try commands like:</div>
+        <div class="router-examples">
+          “show Tableau work” · “open the F1 project” · “download resume” · “explain the airline project for a recruiter”
+        </div>
 
-    <div id="routerStatus" style="margin-top: 14px;"></div>
-  </div>
-</div>
+        <div class="fu-row" style="margin-top: 14px;">
+          <input
+            class="fu-input"
+            id="routerInput"
+            placeholder="Type a command for my portfolio..."
+          />
+          <button class="fu-btn" id="routerBtn" type="button">Run</button>
+        </div>
+
+        <div id="routerStatus" style="margin-top: 14px;"></div>
+      </div>
+    </div>
 
     <div class="roles">
       <div class="label">I am a...</div>
@@ -531,7 +542,7 @@
           <input
             class="fu-input"
             id="fuInput"
-            placeholder="e.g. What was the hardest part? How would you scale this?"
+            placeholder="Follow-up is currently limited to saved project notes."
           />
           <button class="fu-btn" id="fuBtn" type="button">Ask</button>
         </div>
@@ -540,7 +551,7 @@
     </div>
 
     <div class="footer">
-      <span>AI-powered portfolio explainer</span>
+      <span>Gemma-powered portfolio routing</span>
       <span>suriyanarayanan.pk@gmail.com</span>
     </div>
   </div>
@@ -567,6 +578,89 @@
       { id: "mindreading", title: "The Mind-Reading Illusion", tags: ["Responsible AI", "Privacy"], blurb: "How micro-signals shape recommendations." }
     ];
 
+    const PROJECT_LINKS = {
+      airline: "https://public.tableau.com/app/profile/suriya.narayanan8214/viz/VADFINAL/Story1",
+      f1: "https://f1-data-intel-2025.vercel.app/",
+      instacart: "instacart-summary.html",
+      moviematch: "moviematch-summary.html",
+      underarmour: "other-academic-projects.html",
+      erm: "other-academic-projects.html",
+      petalpost: "other-academic-projects.html",
+      royaltease: "other-academic-projects.html",
+      energy: "other-academic-projects.html",
+      streaming: "streaming-summary.html",
+      mindreading: "other-academic-projects.html"
+    };
+
+    const EXPLAINER_COPY = {
+      airline: {
+        recruiter: "I used Tableau to analyze U.S. flight delay patterns across major delay categories and turn them into a story-driven dashboard for operational decision-making. The project highlights airport-level performance, seasonal trends, and root causes in a format that is easy for business stakeholders to explore.",
+        data_scientist: "I structured the airline delay analysis to compare multiple operational delay categories across airports and time periods, using calculated fields and story-based navigation in Tableau. The focus was on translating noisy operational data into interpretable patterns that supported root-cause analysis.",
+        hiring_manager: "This project was about turning a large delay dataset into a usable decision tool rather than just a set of charts. I focused on clarifying where delays were happening, why they were happening, and how stakeholders could move from summary to root-cause insights quickly.",
+        pm: "I designed this dashboard to help teams move from high-level delay monitoring into specific operational questions around seasonality, airports, and delay causes. The output supports faster decision-making by making the analysis interactive and easy to navigate."
+      },
+      instacart: {
+        recruiter: "I analyzed more than 3 million grocery orders to uncover shopping behavior, reorder trends, and customer segments using Tableau. The project helped translate large-scale customer data into insights that product and growth teams could use for targeting and merchandising decisions.",
+        data_scientist: "I used Tableau to explore reorder behavior, basket composition, department-level trends, and customer segmentation across a 3M+ order dataset. The work focused on identifying interpretable behavioral patterns, including stronger reorder performance in organic categories.",
+        hiring_manager: "This project focused on turning large retail order data into a clear view of customer behavior and repeat purchase patterns. I structured the analysis so stakeholders could understand what customers reorder, when they shop, and how purchasing frequency differs across segments.",
+        pm: "I approached this as a customer-behavior problem, using order history to surface actionable insights around reorders, basket patterns, and segment differences. The dashboard helps product and growth teams spot opportunities in category performance and user behavior."
+      },
+      moviematch: {
+        recruiter: "I developed a movie recommendation system using collaborative filtering techniques and deployed it in Streamlit for an interactive user experience. The project combined applied machine learning with product thinking by turning model logic into a usable recommendation workflow.",
+        data_scientist: "This recommender uses user-user and item-item collaborative filtering with cosine similarity over a user-item rating matrix. I also handled cold-start scenarios with fallback logic and built the app so recommendations could be generated interactively in real time.",
+        hiring_manager: "The goal of this project was to turn recommendation logic into a working product experience instead of leaving it as a notebook exercise. I focused on both the model behavior and the usability layer so the system could actually be demonstrated end-to-end.",
+        pm: "I built this as a lightweight recommendation product where the model output directly improves user interaction. The value comes from translating preference signals into real-time suggestions while keeping the experience simple and engaging."
+      },
+      f1: {
+        recruiter: "I created an interactive F1 analytics experience using live race data APIs and deployed it on Vercel. The project demonstrates data storytelling, API integration, and the ability to turn sports telemetry into a polished analytical product.",
+        data_scientist: "This project combines structured racing data from external APIs to compare driver performance, race pace, qualifying results, and pit strategy. The main challenge was shaping multiple sources into an analysis flow that remained coherent and interactive.",
+        hiring_manager: "The F1 project was about productizing sports analytics into a live, explorable experience. I focused on how users would move through the analysis, not just on displaying data from APIs.",
+        pm: "I designed the F1 experience to make race analytics accessible and engaging for users by connecting performance comparisons, strategy views, and historical context. The value is in turning raw race data into a compelling exploration flow."
+      },
+      underarmour: {
+        recruiter: "I developed a strategy-focused analytics concept for Under Armour that connected business transformation ideas with data-driven execution. The work focused on how analytics could support product innovation, operational efficiency, and long-term growth.",
+        data_scientist: "This project framed strategic transformation through an analytics lens, identifying where data products and measurement systems could support athlete insights, sustainability, and connected experiences. The emphasis was on structured thinking rather than predictive modeling.",
+        hiring_manager: "I approached this as a business transformation exercise and translated broad strategic goals into actionable analytics opportunities. The project shows how I think about connecting vision, risk, and execution.",
+        pm: "The goal was to map strategic opportunities into tangible analytics-led experiences that could support both customer value and business growth. I focused on where data could create a stronger product and ecosystem story."
+      },
+      erm: {
+        recruiter: "I designed an enterprise risk management framework for a dairy manufacturing company, covering operational, regulatory, financial, and sustainability risks. The project shows how I can structure risk information into a practical governance model for business use.",
+        data_scientist: "This work focused on organizing multiple risk domains into a scoring and monitoring framework that stakeholders could actually use. The value was in structuring messy operational risk inputs into a clearer evaluation model.",
+        hiring_manager: "I treated this as a practical risk-operations problem and developed a lightweight framework that balanced completeness with usability. The output was meant to support repeatable decision-making rather than produce a static report.",
+        pm: "I structured this project around visibility and actionability, making sure risk categories, ownership, and follow-up could be understood clearly by decision-makers. The emphasis was on making governance usable."
+      },
+      petalpost: {
+        recruiter: "I designed a plant delivery database system using SQL and a structured backend approach for handling orders and inventory. The project demonstrates database design, operational thinking, and end-to-end system planning.",
+        data_scientist: "This project focused on relational database design, normalized entities, and backend logic for order and inventory flows. The emphasis was on data integrity, usability, and system structure rather than advanced modeling.",
+        hiring_manager: "I approached this as a systems design problem and built the data foundation needed for a transactional delivery platform. The project shows how I think through entity relationships, workflows, and operational constraints.",
+        pm: "The value of this project was in designing a clear system behind a delivery experience, where orders, inventory, and user interactions connect cleanly. I focused on structure and maintainability."
+      },
+      royaltease: {
+        recruiter: "I designed a digital rights and royalty management concept focused on automating usage tracking and payment logic. The project highlights structured systems thinking and business-process design.",
+        data_scientist: "This was a systems architecture project centered on clear data flows, royalty calculation logic, and traceable rights management. The emphasis was on workflow design and auditability.",
+        hiring_manager: "I framed this project around the challenge of making complex rights and payment processes more structured and reliable. The deliverable focused on process clarity and system design rather than just documentation.",
+        pm: "I approached this as a product and operations problem where stakeholders need transparency, automation, and trust in royalty workflows. The system design was intended to improve clarity and reliability."
+      },
+      energy: {
+        recruiter: "I worked on a predictive analytics project focused on household energy consumption using regression-based modeling techniques. The project demonstrates feature engineering, model comparison, and insight generation.",
+        data_scientist: "I compared modeling approaches such as CART and linear regression on household energy data, using engineered features from building and weather variables. The focus was on interpretable modeling and practical prediction quality.",
+        hiring_manager: "This project was about structuring a machine learning workflow from raw inputs through feature engineering and model comparison. I focused on selecting methods that balanced accuracy with interpretability.",
+        pm: "I treated this as a decision-support problem, using predictive modeling to surface patterns that could support energy efficiency recommendations. The project connects technical analysis with practical value."
+      },
+      streaming: {
+        recruiter: "I analyzed user behavior across Netflix and Amazon Prime using Python-based exploratory data analysis. The project helped uncover platform differences in demographics, engagement, and subscription patterns.",
+        data_scientist: "This EDA project involved standardizing two streaming datasets and comparing user behavior patterns across demographics, device engagement, and subscription trends. The focus was on extracting clean comparative insights from separate sources.",
+        hiring_manager: "I approached this as a comparative behavior analysis project and focused on building a reproducible workflow that made differences across platforms easy to interpret. The result was a clearer story around user behavior patterns.",
+        pm: "I used this project to explore how audience behavior differs across platforms and what those differences might imply for product positioning and engagement. The analysis was designed to support comparative understanding, not just descriptive reporting."
+      },
+      mindreading: {
+        recruiter: "This project explores how recommendation systems can infer user preferences from subtle behavioral signals and why that matters for responsible AI. It shows my interest in the intersection of analytics, product behavior, and governance.",
+        data_scientist: "I framed this work around the behavioral signals that modern recommendation systems can extract and the governance implications of those inferences. The emphasis was on analysis, interpretation, and responsible AI reasoning.",
+        hiring_manager: "I treated this project as a structured investigation into how platforms infer intent and how little transparency users often have into those systems. The output reflects my ability to connect technical systems with broader implications.",
+        pm: "The project focuses on how hidden recommendation logic shapes user experience and trust. I approached it from a product and governance perspective, asking how personalization can remain effective without becoming opaque."
+      }
+    };
+
     let activeRole = null;
     let activeProject = null;
     const cache = {};
@@ -582,6 +676,9 @@
     const fuAnswers = document.getElementById("fuAnswers");
     const rMeta = document.getElementById("rMeta");
     const rPersp = document.getElementById("rPersp");
+    const routerInput = document.getElementById("routerInput");
+    const routerBtn = document.getElementById("routerBtn");
+    const routerStatus = document.getElementById("routerStatus");
 
     function escapeHtml(str) {
       return String(str || "")
@@ -592,15 +689,6 @@
         .replace(/'/g, "&#039;");
     }
 
-    function setLoading(el, label) {
-      el.innerHTML = `
-        <div class="spin-wrap">
-          <div class="spin"></div>
-          <span>${escapeHtml(label)}</span>
-        </div>
-      `;
-    }
-
     function setError(el, message, details = "") {
       el.innerHTML = `
         <div class="err">${escapeHtml(message)}</div>
@@ -608,11 +696,90 @@
       `;
     }
 
-    async function postGenerate(payload) {
-      const res = await fetch("/api/generate", {
+    function setRouterStatus(message, isError = false) {
+      routerStatus.innerHTML = isError
+        ? `<div class="err">${escapeHtml(message)}</div>`
+        : `<div class="router-note">${escapeHtml(message)}</div>`;
+    }
+
+    function clearProjectFilter() {
+      pgrid.querySelectorAll(".pcard").forEach((card) => {
+        card.classList.remove("project-hidden");
+      });
+    }
+
+    function filterProjectsByTag(tag) {
+      const needle = String(tag || "").trim().toLowerCase();
+      if (!needle) {
+        clearProjectFilter();
+        return 0;
+      }
+
+      let visibleCount = 0;
+
+      PROJECTS.forEach((project) => {
+        const card = pgrid.querySelector(`.pcard[data-id="${project.id}"]`);
+        if (!card) return;
+
+        const haystack = [
+          project.title,
+          project.blurb,
+          ...(project.tags || [])
+        ].join(" ").toLowerCase();
+
+        const matches = haystack.includes(needle);
+        card.classList.toggle("project-hidden", !matches);
+        if (matches) visibleCount += 1;
+      });
+
+      return visibleCount;
+    }
+
+    function resetExplainerUI() {
+      activeRole = null;
+      activeProject = null;
+
+      roleRow.querySelectorAll(".role-btn").forEach((b) => b.classList.remove("on"));
+      pgrid.querySelectorAll(".pcard").forEach((b) => b.classList.remove("on"));
+
+      document.getElementById("roleHint").textContent = "";
+      fuAnswers.innerHTML = "";
+      resultEl.classList.remove("show");
+      fuEl.classList.remove("show");
+      hintEl.style.display = "block";
+      hintEl.textContent = "Pick your role, then click a project.";
+    }
+
+    function clickRoleById(roleId) {
+      const btn = roleRow.querySelector(`.role-btn[data-id="${roleId}"]`);
+      if (btn) btn.click();
+    }
+
+    function clickProjectById(projectId) {
+      const btn = pgrid.querySelector(`.pcard[data-id="${projectId}"]`);
+      if (btn) btn.click();
+    }
+
+    function openProjectLink(projectId) {
+      const href = PROJECT_LINKS[projectId];
+      if (!href) return false;
+      window.open(href, "_blank", "noopener,noreferrer");
+      return true;
+    }
+
+    function explainProject(projectId, roleId = "recruiter") {
+      clearProjectFilter();
+      clickRoleById(roleId);
+      clickProjectById(projectId);
+    }
+
+    async function postRouter(query) {
+      const res = await fetch("/api/router", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query })
       });
 
       const raw = await res.text();
@@ -631,14 +798,14 @@
       if (!res.ok) {
         return {
           ok: false,
-          error: data.error || "Request failed.",
+          error: data.error || "Router failed.",
           details: data.details || ""
         };
       }
 
       return {
         ok: true,
-        text: String(data.text || "").trim()
+        data
       };
     }
 
@@ -646,6 +813,7 @@
       const btn = document.createElement("button");
       btn.className = "role-btn";
       btn.type = "button";
+      btn.dataset.id = role.id;
       btn.innerHTML = `<span>${role.icon}</span>${role.label}`;
       btn.addEventListener("click", () => pickRole(role, btn));
       roleRow.appendChild(btn);
@@ -710,45 +878,27 @@
       }
     }
 
-    async function generate() {
+    function generate() {
       const key = `${activeProject}_${activeRole}`;
-      const project = PROJECTS.find((p) => p.id === activeProject);
-      const role = ROLES.find((r) => r.id === activeRole);
+      const proj = PROJECTS.find((p) => p.id === activeProject);
 
       hintEl.style.display = "none";
       resultEl.classList.add("show");
       fuEl.classList.remove("show");
 
-      rMeta.textContent = project.title;
-      rPersp.textContent = `Perspective: ${role.label}`;
+      rMeta.textContent = proj.title;
+      rPersp.textContent = "Perspective: " + ROLES.find((r) => r.id === activeRole).label;
 
-      if (cache[key]) {
-        bodyEl.textContent = cache[key];
-        fuEl.classList.add("show");
-        resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
-        return;
-      }
+      const projectCopy = EXPLAINER_COPY[activeProject];
+      const text =
+        cache[key] ||
+        projectCopy?.[activeRole] ||
+        "A tailored explanation for this project is not available yet.";
 
-      setLoading(bodyEl, "Generating...");
-
-      try {
-        const result = await postGenerate({
-          projectId: activeProject,
-          role: activeRole
-        });
-
-        if (!result.ok) {
-          setError(bodyEl, result.error, result.details);
-          return;
-        }
-
-        cache[key] = result.text || "No response.";
-        bodyEl.textContent = cache[key];
-        fuEl.classList.add("show");
-        resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
-      } catch (error) {
-        setError(bodyEl, "Request could not reach /api/generate.", String(error?.message || error));
-      }
+      cache[key] = text;
+      bodyEl.textContent = text;
+      fuEl.classList.add("show");
+      resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     fuBtn.addEventListener("click", sendFollowup);
@@ -756,11 +906,10 @@
       if (e.key === "Enter") sendFollowup();
     });
 
-    async function sendFollowup() {
+    function sendFollowup() {
       const q = fuInput.value.trim();
-      if (!q || !activeProject || !activeRole) return;
+      if (!q) return;
 
-      fuBtn.disabled = true;
       fuInput.value = "";
 
       const block = document.createElement("div");
@@ -772,195 +921,81 @@
 
       const aEl = document.createElement("div");
       aEl.className = "fu-a";
-      setLoading(aEl, "Thinking...");
+      aEl.textContent = "For now, this explainer uses saved role-based summaries to keep the output clean and avoid model leakage.";
 
       block.appendChild(qEl);
       block.appendChild(aEl);
       fuAnswers.appendChild(block);
 
-      try {
-        const result = await postGenerate({
-          projectId: activeProject,
-          role: activeRole,
-          followupQuestion: q
-        });
-
-        if (!result.ok) {
-          aEl.textContent = result.details
-            ? `${result.error}\n\n${result.details}`
-            : result.error;
-        } else {
-          aEl.textContent = result.text || "No response.";
-        }
-      } catch (error) {
-        aEl.textContent = `Request could not reach /api/generate.\n\n${String(error?.message || error)}`;
-      }
-
-      fuBtn.disabled = false;
       block.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-    const PROJECT_LINKS = {
-    airline: "https://public.tableau.com/app/profile/suriya.narayanan8214/viz/VADFINAL/Story1",
-    f1: "https://f1-data-intel-2025.vercel.app/",
-    instacart: "instacart-summary.html",
-    moviematch: "moviematch-summary.html",
-    underarmour: "other-academic-projects.html",
-    erm: "other-academic-projects.html",
-    petalpost: "other-academic-projects.html",
-    royaltease: "other-academic-projects.html",
-    energy: "other-academic-projects.html",
-    streaming: "other-academic-projects.html",
-    mindreading: "other-academic-projects.html"
-  };
 
-  const routerInput = document.getElementById("routerInput");
-  const routerBtn = document.getElementById("routerBtn");
-  const routerStatus = document.getElementById("routerStatus");
+    async function runRouter() {
+      const query = routerInput.value.trim();
+      if (!query) return;
 
-  // Give existing role buttons a dataset id based on ROLES order
-  Array.from(document.querySelectorAll(".role-btn")).forEach((btn, idx) => {
-    if (ROLES[idx]) btn.dataset.id = ROLES[idx].id;
-  });
+      routerBtn.disabled = true;
+      setRouterStatus("Routing with Gemma...");
 
-  function setRouterStatus(message, isError = false) {
-    routerStatus.innerHTML = isError
-      ? `<div class="err">${message}</div>`
-      : `<div class="router-note">${message}</div>`;
-  }
-
-  function clearProjectFilter() {
-    pgrid.querySelectorAll(".pcard").forEach((card) => {
-      card.classList.remove("project-hidden");
-    });
-  }
-
-  function filterProjectsByTag(tag) {
-    const needle = String(tag || "").trim().toLowerCase();
-    if (!needle) {
-      clearProjectFilter();
-      return 0;
-    }
-
-    let visibleCount = 0;
-
-    PROJECTS.forEach((project) => {
-      const card = pgrid.querySelector(`.pcard[data-id="${project.id}"]`);
-      if (!card) return;
-
-      const haystack = [
-        project.title,
-        project.blurb,
-        ...(project.tags || [])
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      const matches = haystack.includes(needle);
-      card.classList.toggle("project-hidden", !matches);
-      if (matches) visibleCount += 1;
-    });
-
-    return visibleCount;
-  }
-
-  function clickRoleById(roleId) {
-    const btn = roleRow.querySelector(`.role-btn[data-id="${roleId}"]`);
-    if (btn) btn.click();
-  }
-
-  function clickProjectById(projectId) {
-    const btn = pgrid.querySelector(`.pcard[data-id="${projectId}"]`);
-    if (btn) btn.click();
-  }
-
-  function explainProject(projectId, roleId = "recruiter") {
-    clearProjectFilter();
-    clickRoleById(roleId);
-    clickProjectById(projectId);
-  }
-
-  function openProjectLink(projectId) {
-    const href = PROJECT_LINKS[projectId];
-    if (!href) return false;
-    window.open(href, "_blank", "noopener,noreferrer");
-    return true;
-  }
-
-  async function runRouter() {
-    const query = routerInput.value.trim();
-    if (!query) return;
-
-    routerBtn.disabled = true;
-    setRouterStatus("Routing with Gemma...");
-
-    try {
-      const res = await fetch("/api/router", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ query })
-      });
-
-      const raw = await res.text();
-
-      let data;
       try {
-        data = JSON.parse(raw);
-      } catch {
-        setRouterStatus("Backend returned non-JSON.", true);
-        routerBtn.disabled = false;
-        return;
-      }
+        const result = await postRouter(query);
 
-      if (!res.ok) {
-        setRouterStatus(data.error || "Router failed.", true);
-        routerBtn.disabled = false;
-        return;
-      }
-
-      const action = data.action;
-
-      if (action === "open_resume") {
-        window.open("assets/Suriya_Narayanan_Resume.pdf", "_blank", "noopener,noreferrer");
-        setRouterStatus("Opened resume.");
-      } else if (action === "filter_projects") {
-        const count = filterProjectsByTag(data.tag);
-        setRouterStatus(
-          count > 0
-            ? `Showing ${count} project(s) related to "${data.tag}".`
-            : `I could not find a strong project match for "${data.tag}".`
-        );
-      } else if (action === "explain_project") {
-        explainProject(data.projectId, data.role || "recruiter");
-        setRouterStatus(
-          `Selected ${data.projectId} and opened the explainer${data.role ? ` for ${data.role.replace("_", " ")}` : ""}.`
-        );
-      } else if (action === "open_project_link") {
-        const opened = openProjectLink(data.projectId);
-        if (!opened) {
-          explainProject(data.projectId, "recruiter");
-          setRouterStatus(`No direct link was mapped, so I opened the explainer for ${data.projectId}.`);
-        } else {
-          setRouterStatus(`Opened ${data.projectId}.`);
+        if (!result.ok) {
+          setRouterStatus(result.error, true);
+          routerBtn.disabled = false;
+          return;
         }
-      } else {
-        setRouterStatus(
-          `I couldn't map that cleanly. Try "show Tableau work", "open the F1 project", "download resume", or "explain the airline project for a recruiter".`,
-          true
-        );
+
+        const data = result.data;
+        const action = data.action;
+
+        if (action === "open_resume") {
+          window.open("assets/Suriya_Narayanan_Resume.pdf", "_blank", "noopener,noreferrer");
+          setRouterStatus("Opened resume.");
+        } else if (action === "filter_projects") {
+          resetExplainerUI();
+          const count = filterProjectsByTag(data.tag);
+
+          setRouterStatus(
+            count > 0
+              ? `Showing ${count} project(s) related to "${data.tag}". Scroll down to explore them.`
+              : `I could not find a strong project match for "${data.tag}".`
+          );
+
+          document.querySelector(".projects")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        } else if (action === "explain_project") {
+          explainProject(data.projectId, data.role || "recruiter");
+          setRouterStatus(
+            `Selected ${data.projectId} and opened the explainer${data.role ? ` for ${data.role.replace("_", " ")}` : ""}.`
+          );
+        } else if (action === "open_project_link") {
+          const opened = openProjectLink(data.projectId);
+          if (!opened) {
+            explainProject(data.projectId, "recruiter");
+            setRouterStatus(`No direct link was mapped, so I opened the explainer for ${data.projectId}.`);
+          } else {
+            setRouterStatus(`Opened ${data.projectId}.`);
+          }
+        } else {
+          setRouterStatus(
+            `I couldn't map that cleanly. Try "show Tableau work", "open the F1 project", "download resume", or "explain the airline project for a recruiter".`,
+            true
+          );
+        }
+      } catch (error) {
+        setRouterStatus(`Request failed: ${String(error?.message || error)}`, true);
       }
-    } catch (error) {
-      setRouterStatus(`Request failed: ${String(error?.message || error)}`, true);
+
+      routerBtn.disabled = false;
     }
 
-    routerBtn.disabled = false;
-  }
-
-  routerBtn.addEventListener("click", runRouter);
-  routerInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") runRouter();
-  });
+    routerBtn.addEventListener("click", runRouter);
+    routerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") runRouter();
+    });
   </script>
 </body>
 </html>

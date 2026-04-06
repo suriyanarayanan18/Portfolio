@@ -105,7 +105,7 @@ module.exports = async function handler(req, res) {
               "Rules:",
               "- Prefer open_project_link when the user clearly wants to visit or open a project.",
               "- Prefer explain_project when the user asks to explain, summarize, or describe a project.",
-              "- Prefer filter_projects when the user asks to show projects by skill/tool/topic.",
+              "- Prefer filter_projects when the user asks to show projects by skill, tool, or topic.",
               "- If role is not specified for explain_project, default to recruiter.",
               "- If none apply, return unknown."
             ].join("\n")
