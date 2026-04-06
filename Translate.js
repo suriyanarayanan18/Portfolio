@@ -1,5 +1,6 @@
 (() => {
   const API_ENDPOINT = "/api/translate";
+
   const LANGS = {
     en: "English",
     es: "Spanish",
@@ -103,7 +104,7 @@
       }
     });
 
-    document.documentElement.lang = lang === "ta" ? "ta" : lang === "es" ? "es" : "en";
+    document.documentElement.lang = lang;
     currentLang = lang;
     updateActiveButton();
   }
@@ -131,13 +132,13 @@
 
     if (lang === "en") {
       restoreEnglish();
-      setStatus("Showing original English");
+      setStatus("English");
       return;
     }
 
     if (cache[lang]) {
       applyTranslations(lang, cache[lang]);
-      setStatus(`Showing ${LANGS[lang]}`);
+      setStatus(LANGS[lang]);
       return;
     }
 
@@ -177,7 +178,7 @@
 
       cache[lang] = Array.isArray(data.translated) ? data.translated : texts;
       applyTranslations(lang, cache[lang]);
-      setStatus(`Showing ${LANGS[lang]}`);
+      setStatus(LANGS[lang]);
     } catch (err) {
       setStatus("Translation failed", true);
       console.error(err);
@@ -187,87 +188,98 @@
   }
 
   function injectLanguageSwitcher() {
+    const mount = document.getElementById("topLangMount");
+
     const wrap = document.createElement("div");
     wrap.id = "langSwitcher";
     wrap.dataset.noTranslate = "true";
 
     wrap.innerHTML = `
       <div class="lang-inner">
-        <div class="lang-label">Language</div>
-        <div class="lang-buttons">
-          <button class="lang-btn active" data-lang="en" type="button">EN</button>
-          <button class="lang-btn" data-lang="es" type="button">ES</button>
-          <button class="lang-btn" data-lang="ta" type="button">TA</button>
-        </div>
-        <div class="lang-status" id="langStatus">Showing original English</div>
+        <span class="lang-mini-label">Lang</span>
+        <button class="lang-btn active" data-lang="en" type="button">EN</button>
+        <button class="lang-btn" data-lang="es" type="button">ES</button>
+        <button class="lang-btn" data-lang="ta" type="button">TA</button>
+        <span class="lang-status" id="langStatus">English</span>
       </div>
     `;
 
     const style = document.createElement("style");
     style.textContent = `
       #langSwitcher {
-        position: fixed;
-        right: 18px;
-        bottom: 18px;
         z-index: 9998;
-        background: rgba(12,12,12,0.94);
-        border: 1px solid rgba(249,115,22,0.35);
-        border-radius: 14px;
-        padding: 12px;
-        backdrop-filter: blur(8px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       }
+
       #langSwitcher .lang-inner {
         display: flex;
-        flex-direction: column;
+        align-items: center;
         gap: 8px;
-        min-width: 170px;
+        flex-wrap: wrap;
       }
-      #langSwitcher .lang-label {
+
+      #langSwitcher .lang-mini-label {
         font-size: 11px;
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: #f97316;
         font-family: 'DM Mono', monospace;
       }
-      #langSwitcher .lang-buttons {
-        display: flex;
-        gap: 6px;
-      }
+
       #langSwitcher .lang-btn {
         border: 1px solid #2a2a2a;
         background: transparent;
         color: #d4d4d4;
         border-radius: 9px;
-        padding: 8px 10px;
+        padding: 7px 10px;
         cursor: pointer;
         font-size: 12px;
         font-family: 'DM Mono', monospace;
       }
+
       #langSwitcher .lang-btn.active {
         border-color: #f97316;
         color: #f97316;
         background: rgba(249,115,22,0.08);
       }
+
       #langSwitcher .lang-status {
         font-size: 11px;
         color: #8a8a8a;
         font-family: 'DM Mono', monospace;
       }
+
+      #topLangMount {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+      }
+
       @media (max-width: 640px) {
-        #langSwitcher {
-          left: 12px;
-          right: 12px;
-          bottom: 12px;
-        }
         #langSwitcher .lang-inner {
-          min-width: 0;
+          gap: 6px;
+        }
+
+        #langSwitcher .lang-status {
+          width: 100%;
         }
       }
     `;
 
     document.head.appendChild(style);
-    document.body.appendChild(wrap);
+
+    if (mount) {
+      mount.appendChild(wrap);
+    } else {
+      wrap.style.position = "fixed";
+      wrap.style.top = "14px";
+      wrap.style.right = "14px";
+      wrap.style.background = "rgba(12,12,12,0.94)";
+      wrap.style.border = "1px solid rgba(249,115,22,0.35)";
+      wrap.style.borderRadius = "14px";
+      wrap.style.padding = "10px 12px";
+      wrap.style.backdropFilter = "blur(8px)";
+      document.body.appendChild(wrap);
+    }
 
     wrap.querySelectorAll(".lang-btn").forEach((btn) => {
       btn.addEventListener("click", () => translatePage(btn.dataset.lang));

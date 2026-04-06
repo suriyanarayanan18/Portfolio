@@ -620,3 +620,10 @@ a{ color:inherit; }
 .project-hidden {
   display: none !important;
 }
+
+#topLangMount {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
