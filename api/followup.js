@@ -347,11 +347,17 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    if ((q.includes("challenge") || q.includes("hardest")) && ctx.challenges) {
-      return res.status(200).json({
-        answer: `The main challenge was ${ctx.challenges.charAt(0).toLowerCase() + ctx.challenges.slice(1)}`
-      });
-    }
+   if ((q.includes("challenge") || q.includes("hardest")) && ctx.challenges) {
+  const challenge = String(ctx.challenges).trim();
+
+  const answer = /^(the\s+)?(biggest|main)\s+challenge\s+was/i.test(challenge)
+    ? challenge
+    : `The main challenge was ${challenge.charAt(0).toLowerCase() + challenge.slice(1)}`;
+
+  return res.status(200).json({
+    answer: answer.endsWith(".") ? answer : `${answer}.`
+  });
+}
 
     const prompt = buildPrompt(ctx, role, question);
 
