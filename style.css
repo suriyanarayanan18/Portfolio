@@ -38,6 +38,13 @@ a{ color:inherit; }
   justify-content:space-between;
   padding:14px 18px;
 }
+/* actions group for translator + menu */
+.topbar__actions{
+  margin-left: auto;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
 .brand{
   display:flex;
   align-items:center;

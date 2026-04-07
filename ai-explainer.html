@@ -592,6 +592,13 @@
       mindreading: "other-academic-projects.html"
     };
 
+    const EXTERNAL_LINKS = {
+      github: "https://github.com/suriyanarayanan18",
+      linkedin: "https://www.linkedin.com/in/suriya-narayanan-syr18",
+      resume: "assets/Suriya_Narayanan_Resume.pdf",
+      tableau: "https://public.tableau.com/app/profile/suriya.narayanan8214"
+    };
+
     const EXPLAINER_COPY = {
       airline: {
         recruiter: "I used Tableau to analyze U.S. flight delay patterns across major delay categories and turn them into a story-driven dashboard for operational decision-making. The project highlights airport-level performance, seasonal trends, and root causes in a format that is easy for business stakeholders to explore.",
@@ -952,6 +959,40 @@
         if (action === "open_resume") {
           window.open("assets/Suriya_Narayanan_Resume.pdf", "_blank", "noopener,noreferrer");
           setRouterStatus("Opened resume.");
+        } else if (action === "open_external") {
+          const target = data.external || data.tag || "";
+          const key = String(target || "").toLowerCase();
+          const href = EXTERNAL_LINKS[key];
+          if (href) {
+            window.open(href, "_blank", "noopener,noreferrer");
+            setRouterStatus(`Opened ${key}.`);
+          } else {
+            setRouterStatus(`I don't have a link for "${escapeHtml(target)}".`, true);
+          }
+        } else if (action === "open_section") {
+          const section = data.section || data.tag || "";
+          const sec = String(section || "").toLowerCase();
+          if (!sec) {
+            setRouterStatus("No section specified.", true);
+          } else {
+            // If already on index page, smooth-scroll; otherwise navigate with hash
+            const onIndex = location.pathname.endsWith("/") || location.pathname.endsWith("index.html");
+            if (onIndex) {
+              const el = parent?.document?.querySelector ? parent.document.querySelector(`#${sec}`) : document.querySelector(`#${sec}`);
+              const targetEl = document.querySelector(`#${sec}`) || (parent && parent.document && parent.document.querySelector && parent.document.querySelector(`#${sec}`));
+              if (targetEl) {
+                try { targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* fallback */ location.href = `index.html#${sec}`; }
+                setRouterStatus(`Navigated to ${sec}.`);
+              } else {
+                // navigate to index with hash if element not found here
+                window.location.href = `index.html#${sec}`;
+                setRouterStatus(`Opening ${sec} on the main site.`);
+              }
+            } else {
+              window.location.href = `index.html#${sec}`;
+              setRouterStatus(`Opening ${sec} on the main site.`);
+            }
+          }
         } else if (action === "filter_projects") {
           resetExplainerUI();
           const count = filterProjectsByTag(data.tag);

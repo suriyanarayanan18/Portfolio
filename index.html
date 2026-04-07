@@ -19,12 +19,14 @@
         <span class="brand__mark">*</span>
         <a href="index.html" class="home-link">Portfolio</a>
       </div>
-        <div id="topLangMount" data-no-translate="true"></div>
-      </div>
 
-      <button class="menuBtn" id="menuBtn" aria-label="Open navigation" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
+      <div class="topbar__actions">
+        <div id="topLangMount" data-no-translate="true"></div>
+
+        <button class="menuBtn" id="menuBtn" aria-label="Open navigation" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
 
     <!-- Slide-down menu -->
@@ -56,6 +58,10 @@
     <h2 class="hero_subtitle">Portfolio</h2>
 
     <div class="brush_divider" aria-hidden="true"></div>
+
+    <div class="centerCta">
+      <a class="btn btnPrimary" href="ai-explainer.html">Open AI Explainer</a>
+    </div>
 
     <p class="hero_scroll">Scroll to explore ↓</p>
 
@@ -403,26 +409,27 @@
         <a class="miniBtn" href="#top">Back to top</a>
       </div>
     </footer>
-  </main>
-
+</script>
   <script src="script.js"></script>
-   </section>
 
-  
   <script>
   window.addEventListener("DOMContentLoaded", () => {
     const avatar = document.getElementById("heroAvatar");
-    const intro = document.getElementById("heroIntro");
+    const intro = document.getElementById("heroIntro") || document.querySelector('.hero_kicker');
 
-    // Show Hello first
-    setTimeout(() => {
-      intro.classList.add("animate");
-    }, 200);
+    // Show intro text first (guarded)
+    if (intro) {
+      setTimeout(() => {
+        try { intro.classList.add("animate"); } catch (e) { /* safe */ }
+      }, 200);
+    }
 
-    // Then animate avatar
-    setTimeout(() => {
-      avatar.classList.add("animate");
-    }, 600);
+    // Then animate avatar (guarded)
+    if (avatar) {
+      setTimeout(() => {
+        try { avatar.classList.add("animate"); } catch (e) { /* safe */ }
+      }, 600);
+    }
   });
 </script>
 <script src="translate.js"></script>

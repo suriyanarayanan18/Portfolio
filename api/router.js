@@ -5,6 +5,8 @@ const ALLOWED_ACTIONS = new Set([
   "explain_project",
   "filter_projects",
   "open_resume",
+  "open_external",
+  "open_section",
   "unknown"
 ]);
 
@@ -29,6 +31,10 @@ const ALLOWED_ROLES = new Set([
   "pm"
 ]);
 
+const ALLOWED_SECTIONS = new Set(["about", "projects", "skills", "certifications", "contact"]);
+
+const ALLOWED_EXTERNALS = new Set(["github", "linkedin", "resume", "tableau"]);
+
 function safeString(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -38,12 +44,16 @@ function normalizeRouterOutput(obj) {
   const projectId = safeString(obj?.projectId);
   const role = safeString(obj?.role);
   const tag = safeString(obj?.tag);
+  const section = safeString(obj?.section);
+  const external = safeString(obj?.external);
 
   return {
     action: ALLOWED_ACTIONS.has(action) ? action : "unknown",
     projectId: ALLOWED_PROJECTS.has(projectId) ? projectId : "",
     role: ALLOWED_ROLES.has(role) ? role : "",
-    tag
+    tag,
+    section: ALLOWED_SECTIONS.has(section) ? section : "",
+    external: ALLOWED_EXTERNALS.has(external) ? external : (ALLOWED_EXTERNALS.has(tag?.toLowerCase?.() ? tag.toLowerCase() : "") ? (tag.toLowerCase()) : "")
   };
 }
 
@@ -91,16 +101,29 @@ module.exports = async function handler(req, res) {
               '2. {"action":"explain_project","projectId":"...","role":"recruiter|data_scientist|hiring_manager|pm"}',
               '3. {"action":"filter_projects","tag":"..."}',
               '4. {"action":"open_resume"}',
-              '5. {"action":"unknown"}',
+              '5. {"action":"open_external","external":"github|linkedin|resume|tableau"}',
+              '6. {"action":"open_section","section":"about|projects|skills|certifications|contact"}',
+              '7. {"action":"unknown"}',
               "",
               "Allowed projectId values:",
               "airline, instacart, moviematch, f1, underarmour, erm, petalpost, royaltease, energy, streaming, mindreading",
+              "",
+              "Allowed external targets:",
+              "github, linkedin, resume, tableau",
+              "",
+              "Allowed sections:",
+              "about, projects, skills, certifications, contact",
               "",
               "Examples:",
               '"open the F1 project" -> open_project_link f1',
               '"show Tableau work" -> filter_projects Tableau',
               '"explain the airline project for a recruiter" -> explain_project airline recruiter',
               '"download resume" -> open_resume',
+              '"open his github" -> open_external github',
+              '"open linkedin" -> open_external linkedin',
+              '"show me his certifications" -> open_section certifications',
+              '"show skills" -> open_section skills',
+              '"go to contact" -> open_section contact',
               "",
               "Rules:",
               "- Prefer open_project_link when the user clearly wants to visit or open a project.",
@@ -127,20 +150,24 @@ module.exports = async function handler(req, res) {
           properties: {
             action: {
               type: "string",
-              enum: [
-                "open_project_link",
-                "explain_project",
-                "filter_projects",
-                "open_resume",
-                "unknown"
-              ]
+                  enum: [
+                    "open_project_link",
+                    "explain_project",
+                    "filter_projects",
+                    "open_resume",
+                    "open_external",
+                    "open_section",
+                    "unknown"
+                  ]
             },
             projectId: { type: "string" },
             role: {
               type: "string",
               enum: ["recruiter", "data_scientist", "hiring_manager", "pm"]
             },
-            tag: { type: "string" }
+                tag: { type: "string" },
+                section: { type: "string", enum: ["about", "projects", "skills", "certifications", "contact"] },
+                external: { type: "string", enum: ["github", "linkedin", "resume", "tableau"] }
           },
           required: ["action"]
         }
