@@ -252,448 +252,183 @@ const PROJECT_CONTEXT = {
       "I learned how closely product behavior, analytics, and governance are connected in recommendation systems. It reinforced that responsible AI work often depends on interpreting subtle system behaviors carefully and honestly.",
     whyItMatters:
       "This matters because recommendation systems influence user experience in ways people may not fully see. Better understanding of that opacity supports more responsible design and governance."
+  }
+};
+
+function cleanJsonText(text) {
+  return String(text || "")
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+}
+
+function shortenAnswer(text) {
+  const cleaned = String(text || "").replace(/\s+/g, " ").trim();
+  if (!cleaned) return "";
+  const sentences = cleaned.match(/[^.!?]+[.!?]*/g) || [cleaned];
+  return sentences.slice(0, 3).join(" ").trim();
+}
+
+function buildPrompt(ctx, role, question) {
+  return [
+    "You answer follow-up questions about a portfolio project.",
+    "Use only the project context provided below.",
+    "Do not invent facts.",
+    "Answer in 2 to 3 sentences maximum.",
+    "Use a professional tone.",
+    "Do not use bullets or headings.",
+    "If the question cannot be answered from the provided context, say that briefly and honestly.",
+    "",
+    `Role: ${role}`,
+    `Question: ${question.trim()}`,
+    "",
+    "Project context:",
+    JSON.stringify(ctx, null, 2)
+  ].join("\n");
+}
+
+module.exports = async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const apiKey =
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.GEMMA_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: "API key not configured." });
+  }
+
+  try {
+    const { projectId, role, question } = req.body || {};
+
+    if (!projectId || !role || !question) {
+      return res.status(400).json({
+        error: "projectId, role and question required."
+      });
     }
-  };
 
-  let activeRole = null;
-  let activeProject = null;
-  const cache = {};
-
-  const roleRow = document.getElementById("roleRow");
-  const pgrid = document.getElementById("pgrid");
-  const resultEl = document.getElementById("result");
-  const hintEl = document.getElementById("hint");
-  const bodyEl = document.getElementById("rBody");
-  const fuEl = document.getElementById("followup");
-  const fuInput = document.getElementById("fuInput");
-  const fuBtn = document.getElementById("fuBtn");
-  const fuAnswers = document.getElementById("fuAnswers");
-  const fuChips = document.getElementById("fuChips");
-  const rMeta = document.getElementById("rMeta");
-  const rPersp = document.getElementById("rPersp");
-  const routerInput = document.getElementById("routerInput");
-  const routerBtn = document.getElementById("routerBtn");
-  const routerStatus = document.getElementById("routerStatus");
-
-  function escapeHtml(str) {
-    return String(str || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  function setRouterStatus(message, isError = false) {
-    routerStatus.innerHTML = isError
-      ? `<div class="err">${escapeHtml(message)}</div>`
-      : `<div class="router-note">${escapeHtml(message)}</div>`;
-  }
-
-  function clearProjectFilter() {
-    pgrid.querySelectorAll(".pcard").forEach((card) => {
-      card.classList.remove("project-hidden");
-    });
-  }
-
-  function filterProjectsByTag(tag) {
-    const needle = String(tag || "").trim().toLowerCase();
-    if (!needle) {
-      clearProjectFilter();
-      return 0;
+    const ctx = PROJECT_CONTEXT[projectId];
+    if (!ctx) {
+      return res.status(400).json({ error: "Unknown project." });
     }
 
-    let visibleCount = 0;
+    const q = String(question || "").toLowerCase();
 
-    PROJECTS.forEach((project) => {
-      const card = pgrid.querySelector(`.pcard[data-id="${project.id}"]`);
-      if (!card) return;
+    if (q.includes("tool") && ctx.tools) {
+      return res.status(200).json({
+        answer: `For this project, I used ${ctx.tools}. These were central to how I structured and delivered the work.`
+      });
+    }
 
-      const haystack = [
-        project.title,
-        project.blurb,
-        ...(project.tags || [])
-      ].join(" ").toLowerCase();
+    if ((q.includes("learn") || q.includes("learned")) && ctx.learned) {
+      return res.status(200).json({
+        answer: ctx.learned
+      });
+    }
 
-      const matches = haystack.includes(needle);
-      card.classList.toggle("project-hidden", !matches);
-      if (matches) visibleCount += 1;
-    });
+    if ((q.includes("why it matter") || q.includes("why does this matter") || q.includes("why does it matter")) && ctx.whyItMatters) {
+      return res.status(200).json({
+        answer: ctx.whyItMatters
+      });
+    }
 
-    return visibleCount;
-  }
+    if ((q.includes("business impact") || q.includes("impact")) && ctx.businessImpact) {
+      return res.status(200).json({
+        answer: ctx.businessImpact
+      });
+    }
 
-  function resetExplainerUI() {
-    activeRole = null;
-    activeProject = null;
+    if ((q.includes("challenge") || q.includes("hardest")) && ctx.challenges) {
+      return res.status(200).json({
+        answer: `The main challenge was ${ctx.challenges.charAt(0).toLowerCase() + ctx.challenges.slice(1)}`
+      });
+    }
 
-    roleRow.querySelectorAll(".role-btn").forEach((b) => b.classList.remove("on"));
-    pgrid.querySelectorAll(".pcard").forEach((b) => b.classList.remove("on"));
+    const prompt = buildPrompt(ctx, role, question);
 
-    document.getElementById("roleHint").textContent = "";
-    fuAnswers.innerHTML = "";
-    resultEl.classList.remove("show");
-    fuEl.classList.remove("show");
-    hintEl.style.display = "block";
-    hintEl.textContent = "Pick your role, then click a project.";
-  }
+    const googleRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: prompt }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.1,
+            topP: 0.9,
+            maxOutputTokens: 180,
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                answer: {
+                  type: "STRING"
+                }
+              },
+              required: ["answer"]
+            }
+          }
+        })
+      }
+    );
 
-  function clickRoleById(roleId) {
-    const btn = roleRow.querySelector(`.role-btn[data-id="${roleId}"]`);
-    if (btn) btn.click();
-  }
-
-  function clickProjectById(projectId) {
-    const btn = pgrid.querySelector(`.pcard[data-id="${projectId}"]`);
-    if (btn) btn.click();
-  }
-
-  function openProjectLink(projectId) {
-    const href = PROJECT_LINKS[projectId];
-    if (!href) return false;
-    window.open(href, "_blank", "noopener,noreferrer");
-    return true;
-  }
-
-  function explainProject(projectId, roleId = "recruiter") {
-    clearProjectFilter();
-    clickRoleById(roleId);
-    clickProjectById(projectId);
-  }
-
-  async function postRouter(query) {
-    const res = await fetch("/api/router", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ query })
-    });
-
-    const raw = await res.text();
+    const raw = await googleRes.text();
 
     let data;
     try {
       data = JSON.parse(raw);
     } catch {
-      return {
-        ok: false,
-        error: "Backend returned non-JSON.",
-        details: raw
-      };
+      return res.status(500).json({
+        error: "Model returned non-JSON.",
+        details: raw.slice(0, 1000)
+      });
     }
 
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: data.error || "Router failed.",
-        details: data.details || ""
-      };
+    if (!googleRes.ok) {
+      return res.status(googleRes.status).json({
+        error: data?.error?.message || `Model error (${googleRes.status})`,
+        details: JSON.stringify(data).slice(0, 1200)
+      });
     }
 
-    return {
-      ok: true,
-      data
-    };
-  }
+    const modelText =
+      data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("\n") || "";
 
-  async function postFollowup(projectId, role, question) {
-    const res = await fetch("/api/followup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ projectId, role, question })
-    });
-
-    const raw = await res.text();
-
-    let data;
+    let answer = "";
     try {
-      data = JSON.parse(raw);
+      const parsed = JSON.parse(cleanJsonText(modelText));
+      answer = typeof parsed.answer === "string" ? parsed.answer.trim() : "";
     } catch {
-      return {
-        ok: false,
-        error: "Follow-up backend returned non-JSON."
-      };
+      answer = "";
     }
 
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: data.error || "Follow-up failed."
-      };
+    if (!answer) {
+      return res.status(200).json({
+        answer: "I can’t answer that confidently from the saved project context."
+      });
     }
 
-    return {
-      ok: true,
-      answer: String(data.answer || "").trim()
-    };
-  }
-
-  ROLES.forEach((role) => {
-    const btn = document.createElement("button");
-    btn.className = "role-btn";
-    btn.type = "button";
-    btn.dataset.id = role.id;
-    btn.textContent = role.label;
-    btn.addEventListener("click", () => pickRole(role, btn));
-    roleRow.appendChild(btn);
-  });
-
-  PROJECTS.forEach((project) => {
-    const btn = document.createElement("button");
-    btn.className = "pcard";
-    btn.type = "button";
-    btn.dataset.id = project.id;
-
-    const name = document.createElement("div");
-    name.className = "name";
-    name.textContent = project.title;
-
-    const tags = document.createElement("div");
-    tags.className = "tags";
-
-    project.tags.forEach((tagText) => {
-      const tag = document.createElement("span");
-      tag.className = "tag";
-      tag.textContent = tagText;
-      tags.appendChild(tag);
+    return res.status(200).json({
+      answer: shortenAnswer(answer)
     });
-
-    const blurb = document.createElement("div");
-    blurb.className = "blurb";
-    blurb.textContent = project.blurb;
-
-    btn.appendChild(name);
-    btn.appendChild(tags);
-    btn.appendChild(blurb);
-    btn.addEventListener("click", () => pickProject(project, btn));
-    pgrid.appendChild(btn);
-  });
-
-  function pickRole(role, btn) {
-    roleRow.querySelectorAll(".role-btn").forEach((b) => b.classList.remove("on"));
-    btn.classList.add("on");
-    activeRole = role.id;
-    document.getElementById("roleHint").textContent = role.hint;
-
-    if (activeProject) {
-      generate();
-    } else {
-      hintEl.textContent = "Now click a project.";
-      hintEl.style.display = "block";
-    }
-  }
-
-  function pickProject(project, btn) {
-    pgrid.querySelectorAll(".pcard").forEach((b) => b.classList.remove("on"));
-    btn.classList.add("on");
-    activeProject = project.id;
-    fuAnswers.innerHTML = "";
-
-    if (activeRole) {
-      generate();
-    } else {
-      hintEl.textContent = "Now pick your role above.";
-      hintEl.style.display = "block";
-    }
-  }
-
-  function generate() {
-    const key = `${activeProject}_${activeRole}`;
-    const proj = PROJECTS.find((p) => p.id === activeProject);
-
-    hintEl.style.display = "none";
-    resultEl.classList.add("show");
-    fuEl.classList.remove("show");
-
-    rMeta.textContent = proj.title;
-    rPersp.textContent = "Perspective: " + ROLES.find((r) => r.id === activeRole).label;
-
-    const projectCopy = EXPLAINER_COPY[activeProject];
-    const text =
-      cache[key] ||
-      projectCopy?.[activeRole] ||
-      "A tailored explanation for this project is not available yet.";
-
-    cache[key] = text;
-    bodyEl.textContent = text;
-    fuEl.classList.add("show");
-    resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-
-  function appendFollowupAnswer(question, answer, isError = false) {
-    const block = document.createElement("div");
-    block.className = "fu-answer";
-
-    const qEl = document.createElement("div");
-    qEl.className = "fu-q";
-    qEl.textContent = `"${question}"`;
-
-    const aEl = document.createElement("div");
-    aEl.className = "fu-a";
-    if (isError) aEl.classList.add("err");
-    aEl.textContent = answer;
-
-    block.appendChild(qEl);
-    block.appendChild(aEl);
-    fuAnswers.appendChild(block);
-    block.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-
-  async function sendFollowup(prefilledQuestion = "") {
-    const q = (prefilledQuestion || fuInput.value || "").trim();
-
-    if (!activeProject || !activeRole) {
-      appendFollowupAnswer(
-        q || "Follow-up",
-        "Please select both a project and a role first.",
-        true
-      );
-      return;
-    }
-
-    if (!q) return;
-
-    fuBtn.disabled = true;
-    fuInput.value = "";
-
-    const loadingBlock = document.createElement("div");
-    loadingBlock.className = "fu-answer";
-
-    const qEl = document.createElement("div");
-    qEl.className = "fu-q";
-    qEl.textContent = `"${q}"`;
-
-    const aEl = document.createElement("div");
-    aEl.className = "fu-a fu-loading";
-    aEl.textContent = "Thinking through the project context...";
-
-    loadingBlock.appendChild(qEl);
-    loadingBlock.appendChild(aEl);
-    fuAnswers.appendChild(loadingBlock);
-
-    try {
-      const result = await postFollowup(activeProject, activeRole, q);
-
-      if (!result.ok) {
-        aEl.classList.remove("fu-loading");
-        aEl.classList.add("err");
-        aEl.textContent = result.error || "Could not generate a follow-up answer.";
-      } else {
-        aEl.classList.remove("fu-loading");
-        aEl.textContent =
-          result.answer || "I can’t answer that confidently from the saved project context.";
-      }
-    } catch (error) {
-      aEl.classList.remove("fu-loading");
-      aEl.classList.add("err");
-      aEl.textContent = "Something went wrong while generating the follow-up.";
-    }
-
-    fuBtn.disabled = false;
-    loadingBlock.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-
-  fuBtn.addEventListener("click", () => sendFollowup());
-  fuInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendFollowup();
-  });
-
-  fuChips?.querySelectorAll(".fu-chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      const q = chip.dataset.q || "";
-      fuInput.value = q;
-      sendFollowup(q);
+  } catch (error) {
+    return res.status(500).json({
+      error: "Server error.",
+      details: String(error?.message || error)
     });
-  });
-
-  async function runRouter() {
-    const query = routerInput.value.trim();
-    if (!query) return;
-
-    routerBtn.disabled = true;
-    setRouterStatus("Routing with Gemma...");
-
-    try {
-      const result = await postRouter(query);
-
-      if (!result.ok) {
-        setRouterStatus(result.error, true);
-        routerBtn.disabled = false;
-        return;
-      }
-
-      const data = result.data;
-      const action = data.action;
-
-      if (action === "open_resume") {
-        window.open("assets/Suriya_Narayanan_Resume.pdf", "_blank", "noopener,noreferrer");
-        setRouterStatus("Opened resume.");
-      } else if (action === "open_external") {
-        const target = data.target || data.external || data.tag || "";
-        const key = String(target || "").toLowerCase();
-        const href = EXTERNAL_LINKS[key];
-        if (href) {
-          window.open(href, "_blank", "noopener,noreferrer");
-          setRouterStatus(`Opened ${key}.`);
-        } else {
-          setRouterStatus(`I don't have a link for "${target}".`, true);
-        }
-      } else if (action === "open_section") {
-        const section = data.section || "";
-        const sec = String(section || "").toLowerCase();
-        if (!sec) {
-          setRouterStatus("No section specified.", true);
-        } else {
-          window.location.href = `index.html#${sec}`;
-          setRouterStatus(`Opening ${sec} on the main site.`);
-        }
-      } else if (action === "filter_projects") {
-        resetExplainerUI();
-        const count = filterProjectsByTag(data.tag);
-
-        setRouterStatus(
-          count > 0
-            ? `Showing ${count} project(s) related to "${data.tag}". Scroll down to explore them.`
-            : `I could not find a strong project match for "${data.tag}".`
-        );
-
-        document.querySelector(".projects")?.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      } else if (action === "explain_project") {
-        explainProject(data.projectId, data.role || "recruiter");
-        setRouterStatus(
-          `Selected ${data.projectId} and opened the explainer${data.role ? ` for ${data.role.replace("_", " ")}` : ""}.`
-        );
-      } else if (action === "open_project_link") {
-        const opened = openProjectLink(data.projectId);
-        if (!opened) {
-          explainProject(data.projectId, "recruiter");
-          setRouterStatus(`No direct link was mapped, so I opened the explainer for ${data.projectId}.`);
-        } else {
-          setRouterStatus(`Opened ${data.projectId}.`);
-        }
-      } else {
-        setRouterStatus(
-          `I couldn't map that cleanly. Try "show Tableau work", "open GitHub", "open LinkedIn", "show certifications", or "explain the airline project for a recruiter".`,
-          true
-        );
-      }
-    } catch (error) {
-      setRouterStatus(`Request failed: ${String(error?.message || error)}`, true);
-    }
-
-    routerBtn.disabled = false;
   }
-
-  routerBtn.addEventListener("click", runRouter);
-  routerInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") runRouter();
-  });
-  </script>
-</body>
-</html>
+};
