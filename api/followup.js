@@ -1,4 +1,4 @@
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemma-4-31b-it";
 
 const PROJECT_CONTEXT = {
   airline: {
