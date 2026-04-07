@@ -13,7 +13,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Operations teams, business stakeholders, and reviewers interested in data storytelling and dashboarding.",
     challenges:
-      "The biggest challenge was turning noisy operational data with multiple delay categories into patterns that stayed interpretable across airports and time periods.",
+      "turning noisy operational data with multiple delay categories into patterns that stayed interpretable across airports and time periods",
     keyMetrics:
       "Airport-level comparisons, delay category breakdowns, and seasonality views.",
     businessImpact:
@@ -36,7 +36,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Product, growth, and merchandising teams.",
     challenges:
-      "The main challenge was working at scale while separating meaningful customer behavior patterns from large amounts of routine transaction noise.",
+     "working at scale while separating meaningful customer behavior patterns from large amounts of routine transaction noise",
     keyMetrics:
       "3M+ orders and stronger reorder performance in organic categories.",
     businessImpact:
@@ -59,7 +59,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Product, engineering, and technical reviewers.",
     challenges:
-      "The biggest challenge was balancing recommendation quality with cold-start handling and keeping the live interaction experience simple and responsive.",
+       "balancing recommendation quality with cold-start handling while keeping the live interaction experience simple and responsive",
     keyMetrics:
       "Real-time recommendations with fallback logic for cold-start scenarios.",
     businessImpact:
@@ -82,7 +82,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Sports analytics users, product-oriented reviewers, and data storytelling audiences.",
     challenges:
-      "The hardest part was shaping multiple external data sources into one coherent experience that stayed clear and interactive.",
+       "shaping multiple external data sources into one coherent experience that stayed clear and interactive",
     keyMetrics:
       "Live data-driven race comparisons, strategy views, and performance analysis.",
     businessImpact:
@@ -105,7 +105,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Leadership, strategy, and transformation stakeholders.",
     challenges:
-      "The main challenge was translating broad strategic ambition into practical analytics opportunities that could be phased and prioritized.",
+      "translating broad strategic ambition into practical analytics opportunities that could be phased and prioritized",
     keyMetrics:
       "Phased roadmap for analytics-led transformation opportunities.",
     businessImpact:
@@ -128,7 +128,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Risk, operations, and business stakeholders.",
     challenges:
-      "The challenge was balancing completeness with usability so the framework stayed practical rather than overly heavy.",
+       "balancing completeness with usability so the framework stayed practical rather than overly heavy",
     keyMetrics:
       "Seven structured risk domains with scoring and governance support.",
     businessImpact:
@@ -151,7 +151,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Engineering, database, and product reviewers.",
     challenges:
-      "The key challenge was maintaining data integrity while designing workflows that connected orders, inventory, and operational processes cleanly.",
+      "maintaining data integrity while designing workflows that connected orders, inventory, and operational processes cleanly",
     keyMetrics:
       "Database-backed order and inventory workflow design.",
     businessImpact:
@@ -174,7 +174,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Product and business teams reviewing rights and payments workflows.",
     challenges:
-      "The biggest challenge was designing a system that stayed clear, traceable, and reliable across multiple entities and financial relationships.",
+       "designing a system that stayed clear, traceable, and reliable across multiple entities and financial relationships",
     keyMetrics:
       "Conceptual system design focused on auditability and process clarity.",
     businessImpact:
@@ -197,7 +197,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Energy analysts and data reviewers.",
     challenges:
-      "The key challenge was translating raw environmental and household variables into predictors that were both useful and interpretable.",
+      "translating raw environmental and household variables into predictors that were both useful and interpretable",
     keyMetrics:
       "Model comparison across CART and regression approaches.",
     businessImpact:
@@ -220,7 +220,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Research, product, and analytics audiences.",
     challenges:
-      "The main challenge was aligning two different datasets so that platform comparisons remained meaningful and fair.",
+      "aligning two different datasets so that platform comparisons remained meaningful and fair",
     keyMetrics:
       "Comparative analysis across demographics, subscriptions, and engagement.",
     businessImpact:
@@ -243,7 +243,7 @@ const PROJECT_CONTEXT = {
     audience:
       "Responsible AI, governance, and policy-oriented audiences.",
     challenges:
-      "The challenge was discussing subtle behavioral inference carefully without overstating what could be concluded.",
+      "discussing subtle behavioral inference carefully without overstating what could be concluded",
     keyMetrics:
       "Governance-focused analysis of recommendation signals and transparency issues.",
     businessImpact:
@@ -347,15 +347,13 @@ module.exports = async function handler(req, res) {
       });
     }
 
-   if ((q.includes("challenge") || q.includes("hardest")) && ctx.challenges) {
-  const challenge = String(ctx.challenges).trim();
+    if ((q.includes("challenge") || q.includes("hardest")) && ctx.challenges) {
+    const challenge = String(ctx.challenges).trim();
 
-  const answer = /^(the\s+)?(biggest|main)\s+challenge\s+was/i.test(challenge)
-    ? challenge
-    : `The main challenge was ${challenge.charAt(0).toLowerCase() + challenge.slice(1)}`;
-
-  return res.status(200).json({
-    answer: answer.endsWith(".") ? answer : `${answer}.`
+    return res.status(200).json({
+    answer: challenge.endsWith(".")
+      ? `The main challenge was ${challenge.slice(0, -1)}.`
+      : `The main challenge was ${challenge}.`
   });
 }
 
