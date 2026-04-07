@@ -1,304 +1,1148 @@
-const MODEL = "gemini-2.5-flash";
-
-const PROJECT_CONTEXT = {
-  airline: {
-    title: "Airline Delay Analysis",
-    tools: "Tableau, calculated fields, parameter-driven filters",
-    problem:
-      "Operational flight delay data needed to be shaped into a story-driven dashboard for operations teams.",
-    approach:
-      "Created interactive Tableau story points and calculated fields to compare delay categories, airports, and seasonal patterns for root-cause analysis.",
-    outcome:
-      "A decision-focused dashboard that surfaces airport-level performance and seasonal trends for stakeholders.",
-    audience: "Operations teams and business stakeholders",
-    challenges:
-      "Noisy operational data and multiple delay categories required careful aggregation and interpretation.",
-    keyMetrics: "Airport-level comparisons and seasonal trend views"
-  },
-  instacart: {
-    title: "Instacart Analysis",
-    tools: "Tableau, data visualization, customer segmentation",
-    problem:
-      "Understand reorder behavior and basket composition across millions of orders to inform product and growth decisions.",
-    approach:
-      "Analyzed 3M+ grocery orders, built dashboards for reorder trends, department-level patterns, and customer segments.",
-    outcome:
-      "Actionable insights for merchandising and targeting, including stronger reorder performance in organic categories.",
-    audience: "Product and growth teams",
-    challenges:
-      "Working at scale while separating meaningful customer behavior patterns from noise.",
-    keyMetrics: "3M+ orders; organic products showed stronger reorder performance"
-  },
-  moviematch: {
-    title: "MovieMatch - AI Recommender",
-    tools: "Python, Streamlit, collaborative filtering, cosine similarity",
-    problem:
-      "Deliver real-time movie recommendations with reasonable accuracy and cold-start handling.",
-    approach:
-      "Built user-user and item-item collaborative filtering with cosine similarity and fallback popularity logic, then deployed it in Streamlit.",
-    outcome:
-      "An interactive recommender that demonstrates applied machine learning and product thinking.",
-    audience: "Product and engineering reviewers",
-    challenges:
-      "Cold-start user scenarios and making recommendations feel responsive in a live interface.",
-    keyMetrics: "Real-time recommendations with fallback handling"
-  },
-  f1: {
-    title: "F1 Data Intelligence Report",
-    tools: "JavaScript, Ergast API, OpenF1 API, Vercel",
-    problem:
-      "Turn racing telemetry and race data into an explorable analytics product.",
-    approach:
-      "Combined external race APIs into an interactive experience for performance comparisons, strategy views, and historical analysis.",
-    outcome:
-      "A live analytical experience for race comparisons and strategy insights.",
-    audience: "Sports analytics and product audiences",
-    challenges:
-      "Shaping multiple data sources into a coherent and interactive flow.",
-    keyMetrics: "Live race-data driven comparisons and strategy analysis"
-  },
-  underarmour: {
-    title: "Under Armour Strategic Transformation",
-    tools: "Strategy, analytics roadmap, risk assessment",
-    problem:
-      "Map analytics opportunities to product and operational transformation.",
-    approach:
-      "Framed strategic opportunities and phased rollouts from data foundations to athlete experiences.",
-    outcome:
-      "A roadmap of analytics-driven opportunities tied to product and operational value.",
-    audience: "Leadership and strategy teams",
-    challenges:
-      "Balancing broad strategic ambition with phased adoption and execution realism.",
-    keyMetrics: "Phased transformation roadmap"
-  },
-  erm: {
-    title: "ERM - Dairy Manufacturing",
-    tools: "Risk frameworks, scoring, governance design",
-    problem:
-      "Create a usable enterprise risk framework across domains for a dairy manufacturer.",
-    approach:
-      "Designed seven risk domains, scoring, and lightweight governance for repeatable monitoring.",
-    outcome:
-      "A governance-ready ERM approach for operational teams.",
-    audience: "Risk and operations stakeholders",
-    challenges:
-      "Balancing completeness with usability in a practical operating environment.",
-    keyMetrics: "Seven structured risk domains"
-  },
-  petalpost: {
-    title: "Petal Post - Plant Delivery System",
-    tools: "SQL Server, Power Pages, stored procedures",
-    problem:
-      "Design a transactional backend for an e-commerce plant delivery product.",
-    approach:
-      "Created a normalized database design, stored procedures, and a Power Pages frontend.",
-    outcome:
-      "A structured database-backed order and inventory system.",
-    audience: "Engineering and product reviewers",
-    challenges:
-      "Maintaining operational data integrity across orders and inventory flows.",
-    keyMetrics: "Database-backed order and inventory workflow"
-  },
-  royaltease: {
-    title: "RoyaltEase - DRM System",
-    tools: "Systems design, DFDs, ER modeling",
-    problem:
-      "Automate usage tracking and royalty calculations with clearer auditability.",
-    approach:
-      "Designed data flows, royalty calculation logic, and auditable workflows.",
-    outcome:
-      "A concept for traceable royalty management and secure payment logic.",
-    audience: "Product and business teams",
-    challenges:
-      "Ensuring traceability across rights, usage, and payment relationships.",
-    keyMetrics: "Auditable royalty workflow concept"
-  },
-  energy: {
-    title: "Energy Consumption Prediction",
-    tools: "R, CART, linear regression, feature engineering",
-    problem:
-      "Predict household energy consumption for efficiency insights.",
-    approach:
-      "Compared CART and linear regression using engineered features from building and weather variables.",
-    outcome:
-      "Practical predictive models and energy-efficiency recommendations.",
-    audience: "Energy analysts and data reviewers",
-    challenges:
-      "Feature quality and translating environmental variables into useful predictors.",
-    keyMetrics: "Model comparison across CART and regression"
-  },
-  streaming: {
-    title: "Netflix vs Prime - EDA",
-    tools: "Python, pandas, matplotlib, EDA",
-    problem:
-      "Compare user behavior across streaming platforms.",
-    approach:
-      "Standardized datasets and conducted comparative exploratory analysis across demographics, subscriptions, and engagement.",
-    outcome:
-      "Insights into behavioral and platform differences across streaming services.",
-    audience: "Research and product audiences",
-    challenges:
-      "Aligning two datasets so comparisons stayed meaningful.",
-    keyMetrics: "Comparative cross-platform behavior analysis"
-  },
-  mindreading: {
-    title: "The Mind-Reading Illusion",
-    tools: "Responsible AI, governance analysis, research methodology",
-    problem:
-      "Understand how micro-signals shape recommendations and what that means for transparency and privacy.",
-    approach:
-      "Used interaction experiments and governance analysis to explore recommendation inference and disclosure gaps.",
-    outcome:
-      "A clearer framing of recommendation-system opacity and responsible AI implications.",
-    audience: "Responsible AI and policy audiences",
-    challenges:
-      "Discussing subtle behavioral inference without overstating what can be proven.",
-    keyMetrics: "Governance-focused analysis of recommendation signals"
-  }
-};
-
-function cleanJsonText(text) {
-  return String(text || "")
-    .replace(/^```json\s*/i, "")
-    .replace(/^```\s*/i, "")
-    .replace(/\s*```$/i, "")
-    .trim();
-}
-
-function shortenAnswer(text) {
-  const cleaned = String(text || "").replace(/\s+/g, " ").trim();
-  if (!cleaned) return "";
-  const sentences = cleaned.match(/[^.!?]+[.!?]*/g) || [cleaned];
-  return sentences.slice(0, 3).join(" ").trim();
-}
-
-function buildPrompt(ctx, role, question) {
-  return [
-    "You answer follow-up questions about a portfolio project.",
-    "Use only the project context provided below.",
-    "Do not invent facts.",
-    "Answer in 2 to 3 sentences maximum.",
-    "Use a professional tone.",
-    "Do not use bullets or headings.",
-    "If the question cannot be answered from the provided context, say that briefly and honestly.",
-    "",
-    `Role: ${role}`,
-    `Question: ${question.trim()}`,
-    "",
-    "Project context:",
-    JSON.stringify(ctx, null, 2)
-  ].join("\n");
-}
-
-module.exports = async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const apiKey =
-    process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
-    process.env.GEMMA_API_KEY;
-
-  if (!apiKey) {
-    return res.status(500).json({ error: "API key not configured." });
-  }
-
-  try {
-    const { projectId, role, question } = req.body || {};
-
-    if (!projectId || !role || !question) {
-      return res.status(400).json({
-        error: "projectId, role and question required."
-      });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ask My Portfolio</title>
+  <meta
+    name="description"
+    content="Interactive portfolio router and project explainer."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,300&display=swap"
+    rel="stylesheet"
+  >
+  <style>
+    :root {
+      --bg: #060606;
+      --surface: #0c0c0c;
+      --border: #1a1a1a;
+      --border-hi: #2a2a2a;
+      --text: #e5e5e5;
+      --muted: #737373;
+      --dim: #525252;
+      --accent: #f97316;
+      --accent-bg: rgba(249, 115, 22, 0.06);
+      --accent-border: rgba(249, 115, 22, 0.4);
+      --mono: 'DM Mono', monospace;
+      --serif: 'Newsreader', Georgia, serif;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    const ctx = PROJECT_CONTEXT[projectId];
-    if (!ctx) {
-      return res.status(400).json({ error: "Unknown project." });
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    const prompt = buildPrompt(ctx, role, question);
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--serif);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
 
-    const googleRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: prompt }]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            topP: 0.9,
-            maxOutputTokens: 180,
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: "OBJECT",
-              properties: {
-                answer: {
-                  type: "STRING"
-                }
-              },
-              required: ["answer"]
-            }
-          }
-        })
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.02;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    }
+
+    .wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .topbar {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar .inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .topbar a {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .topbar a:hover {
+      color: var(--text);
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      padding: 4px 12px;
+      border-radius: 99px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hero {
+      padding: 56px 0 32px;
+    }
+
+    .hero h1 {
+      font-size: clamp(34px, 5.5vw, 54px);
+      font-weight: 300;
+      line-height: 1.08;
+      color: #fafafa;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--accent);
+    }
+
+    .hero .desc {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 620px;
+      line-height: 1.65;
+      font-weight: 300;
+    }
+
+    .label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 14px;
+    }
+
+    .router-block {
+      margin-bottom: 40px;
+    }
+
+    .router-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+
+    .router-title {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .router-examples {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .router-note {
+      font-size: 13px;
+      color: var(--dim);
+      font-style: italic;
+    }
+
+    .roles {
+      margin-bottom: 40px;
+    }
+
+    .role-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .role-btn {
+      padding: 10px 18px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.25s var(--ease);
+    }
+
+    .role-btn:hover {
+      border-color: var(--border-hi);
+      color: var(--text);
+    }
+
+    .role-btn.on {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+      color: var(--accent);
+    }
+
+    .role-hint {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--dim);
+      font-style: italic;
+      min-height: 20px;
+      transition: opacity 0.3s;
+    }
+
+    .projects {
+      margin-bottom: 40px;
+    }
+
+    .pgrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 8px;
+    }
+
+    .pcard {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      transition: all 0.25s var(--ease);
+    }
+
+    .pcard:hover {
+      border-color: var(--border-hi);
+    }
+
+    .pcard.on {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .pcard .name {
+      font-family: var(--serif);
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      line-height: 1.3;
+      color: var(--text);
+      transition: color 0.2s;
+    }
+
+    .pcard.on .name {
+      color: var(--accent);
+    }
+
+    .pcard .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 5px;
+    }
+
+    .pcard .tag {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      color: var(--dim);
+    }
+
+    .pcard .blurb {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .project-hidden {
+      display: none !important;
+    }
+
+    .hint {
+      text-align: center;
+      padding: 36px 0;
+      color: var(--dim);
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    .result {
+      margin-bottom: 48px;
+      display: none;
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .rbox {
+      padding: 28px 26px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rbox .bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: linear-gradient(180deg, var(--accent), #c2410c, transparent);
+    }
+
+    .rbox .meta {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 3px;
+    }
+
+    .rbox .perspective {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      margin-bottom: 18px;
+    }
+
+    .rbox .body {
+      font-family: var(--serif);
+      font-size: 16.5px;
+      line-height: 1.8;
+      color: #d4d4d4;
+      font-weight: 300;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .err {
+      color: #ef4444;
+      font-size: 14px;
+    }
+
+    .followup {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .followup.show {
+      display: block;
+    }
+
+    .fu-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .fu-chip {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s var(--ease);
+    }
+
+    .fu-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .fu-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .fu-input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--serif);
+      font-size: 14.5px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .fu-input::placeholder {
+      color: var(--dim);
+    }
+
+    .fu-input:focus {
+      border-color: var(--accent);
+    }
+
+    .fu-btn {
+      padding: 11px 18px;
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .fu-btn:hover {
+      background: rgba(249, 115, 22, 0.12);
+    }
+
+    .fu-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .fu-answer {
+      margin-top: 16px;
+      padding: 16px 18px;
+      border-left: 2px solid var(--accent);
+      background: rgba(249, 115, 22, 0.03);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .fu-answer .fu-q {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+    }
+
+    .fu-answer .fu-a {
+      font-family: var(--serif);
+      font-size: 15px;
+      line-height: 1.75;
+      color: #d4d4d4;
+      font-weight: 300;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .fu-loading {
+      color: var(--dim);
+      font-style: italic;
+    }
+
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 22px 0 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer span,
+    .footer a {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--dim);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      color: var(--text);
+    }
+
+    @media (max-width: 600px) {
+      .wrap {
+        padding: 0 16px;
       }
-    );
 
-    const raw = await googleRes.text();
+      .pgrid {
+        grid-template-columns: 1fr;
+      }
 
-    let data;
-    try {
-      data = JSON.parse(raw);
-    } catch {
-      return res.status(500).json({
-        error: "Model returned non-JSON.",
-        details: raw.slice(0, 1000)
+      .fu-row {
+        flex-direction: column;
+      }
+
+      .hero {
+        padding: 36px 0 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="inner">
+      <a href="index.html">← Portfolio</a>
+      <span class="badge">Gemma 4 31B</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="hero">
+      <h1>Ask my portfolio<em>.</em></h1>
+      <p class="desc">
+        Use the Gemma router to navigate my work naturally, then choose a role to see a clean tailored project explanation.
+      </p>
+    </div>
+
+    <div class="router-block">
+      <div class="label">Gemma Router</div>
+      <div class="router-card">
+        <div class="router-title">Try commands like:</div>
+        <div class="router-examples">
+          “Open GitHub” · “Open LinkedIn” · “Show Python projects” · “Show Tableau work” · “Show certifications” · “Explain the airline project for a recruiter”
+        </div>
+
+        <div class="fu-row" style="margin-top: 14px;">
+          <input
+            class="fu-input"
+            id="routerInput"
+            placeholder="Type a command for my portfolio..."
+          />
+          <button class="fu-btn" id="routerBtn" type="button">Run</button>
+        </div>
+
+        <div id="routerStatus" style="margin-top: 14px;"></div>
+      </div>
+    </div>
+
+    <div class="roles">
+      <div class="label">I am a...</div>
+      <div class="role-row" id="roleRow"></div>
+      <div class="role-hint" id="roleHint"></div>
+    </div>
+
+    <div class="projects">
+      <div class="label">Select a project</div>
+      <div class="pgrid" id="pgrid"></div>
+    </div>
+
+    <div class="hint" id="hint">Pick your role, then click a project.</div>
+
+    <div class="result" id="result">
+      <div class="rbox">
+        <div class="bar"></div>
+        <div class="meta" id="rMeta"></div>
+        <div class="perspective" id="rPersp"></div>
+        <div class="body" id="rBody"></div>
+      </div>
+
+      <div class="followup" id="followup">
+        <div class="label">Ask a follow-up</div>
+
+        <div class="fu-chips" id="fuChips">
+          <button class="fu-chip" type="button" data-q="What was the biggest challenge?">Key challenge</button>
+          <button class="fu-chip" type="button" data-q="What was the business impact?">Business impact</button>
+          <button class="fu-chip" type="button" data-q="What tools did you use?">Tools used</button>
+          <button class="fu-chip" type="button" data-q="What did you learn from this project?">What I learned</button>
+          <button class="fu-chip" type="button" data-q="Why does this matter?">Why it matters</button>
+        </div>
+
+        <div class="fu-row">
+          <input
+            class="fu-input"
+            id="fuInput"
+            placeholder="Ask a short follow-up about the selected project..."
+          />
+          <button class="fu-btn" id="fuBtn" type="button">Ask</button>
+        </div>
+
+        <div id="fuAnswers"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Gemma-powered portfolio routing</span>
+      <a href="index.html">Back to Portfolio</a>
+    </div>
+  </div>
+
+  <script>
+    const ROLES = [
+      { id: "recruiter", label: "Recruiter", hint: "Business impact, skills match, ATS keywords" },
+      { id: "data_scientist", label: "Data Scientist", hint: "Methodology, algorithms, technical tradeoffs" },
+      { id: "hiring_manager", label: "Hiring Manager", hint: "Problem-solving, ownership, initiative" },
+      { id: "pm", label: "Product Manager", hint: "User impact, product thinking, decision enablement" }
+    ];
+
+    const PROJECTS = [
+      { id: "airline", title: "Airline Delay Analysis", tags: ["Tableau", "Analytics", "Dashboard Story"], blurb: "Delay causes, airline performance, and seasonality insights." },
+      { id: "instacart", title: "Instacart Analysis", tags: ["Tableau", "Customer Insights", "Viz"], blurb: "Shopping patterns and reorder behavior for growth teams." },
+      { id: "moviematch", title: "MovieMatch - AI Recommender", tags: ["Python", "Streamlit", "ML"], blurb: "Collaborative filtering recommendation engine." },
+      { id: "f1", title: "F1 Data Intelligence Report", tags: ["API", "Codex", "Sports Analytics"], blurb: "Race performance, telemetry, and strategic insights." },
+      { id: "underarmour", title: "Under Armour - Strategy", tags: ["Strategy", "Analytics Vision"], blurb: "Data-driven transformation roadmap." },
+      { id: "erm", title: "ERM - Dairy Manufacturing", tags: ["Risk Mgmt", "Operations"], blurb: "Enterprise risk framework and governance." },
+      { id: "petalpost", title: "Petal Post - Plant Delivery", tags: ["SQL", "Database Design"], blurb: "E-commerce database system." },
+      { id: "royaltease", title: "RoyaltEase - DRM System", tags: ["Systems Design", "Data Flows"], blurb: "Digital rights and royalty management." },
+      { id: "energy", title: "Energy Consumption Prediction", tags: ["ML", "Regression"], blurb: "Predictive models for household energy." },
+      { id: "streaming", title: "Netflix vs Prime - EDA", tags: ["Python", "Pandas", "EDA"], blurb: "Cross-platform user behavior comparison." },
+      { id: "mindreading", title: "The Mind-Reading Illusion", tags: ["Responsible AI", "Privacy"], blurb: "How micro-signals shape recommendations." }
+    ];
+
+    const PROJECT_LINKS = {
+      airline: "https://public.tableau.com/app/profile/suriya.narayanan8214/viz/VADFINAL/Story1",
+      f1: "https://f1-data-intel-2025.vercel.app/",
+      instacart: "instacart-summary.html",
+      moviematch: "moviematch-summary.html",
+      underarmour: "other-academic-projects.html",
+      erm: "other-academic-projects.html",
+      petalpost: "other-academic-projects.html",
+      royaltease: "other-academic-projects.html",
+      energy: "other-academic-projects.html",
+      streaming: "streaming-summary.html",
+      mindreading: "other-academic-projects.html"
+    };
+
+    const EXTERNAL_LINKS = {
+      github: "https://github.com/suriyanarayanan18",
+      linkedin: "https://www.linkedin.com/in/suriya-narayanan-syr18",
+      resume: "assets/Suriya_Narayanan_Resume.pdf",
+      tableau: "https://public.tableau.com/app/profile/suriya.narayanan8214"
+    };
+
+    const EXPLAINER_COPY = {
+      airline: {
+        recruiter: "I used Tableau to analyze U.S. flight delay patterns across major delay categories and turn them into a story-driven dashboard for operational decision-making. The project highlights airport-level performance, seasonal trends, and root causes in a format that is easy for business stakeholders to explore.",
+        data_scientist: "I structured the airline delay analysis to compare multiple operational delay categories across airports and time periods, using calculated fields and story-based navigation in Tableau. The focus was on translating noisy operational data into interpretable patterns that supported root-cause analysis.",
+        hiring_manager: "This project was about turning a large delay dataset into a usable decision tool rather than just a set of charts. I focused on clarifying where delays were happening, why they were happening, and how stakeholders could move from summary to root-cause insights quickly.",
+        pm: "I designed this dashboard to help teams move from high-level delay monitoring into specific operational questions around seasonality, airports, and delay causes. The output supports faster decision-making by making the analysis interactive and easy to navigate."
+      },
+      instacart: {
+        recruiter: "I analyzed more than 3 million grocery orders to uncover shopping behavior, reorder trends, and customer segments using Tableau. The project helped translate large-scale customer data into insights that product and growth teams could use for targeting and merchandising decisions.",
+        data_scientist: "I used Tableau to explore reorder behavior, basket composition, department-level trends, and customer segmentation across a 3M+ order dataset. The work focused on identifying interpretable behavioral patterns, including stronger reorder performance in organic categories.",
+        hiring_manager: "This project focused on turning large retail order data into a clear view of customer behavior and repeat purchase patterns. I structured the analysis so stakeholders could understand what customers reorder, when they shop, and how purchasing frequency differs across segments.",
+        pm: "I approached this as a customer-behavior problem, using order history to surface actionable insights around reorders, basket patterns, and segment differences. The dashboard helps product and growth teams spot opportunities in category performance and user behavior."
+      },
+      moviematch: {
+        recruiter: "I developed a movie recommendation system using collaborative filtering techniques and deployed it in Streamlit for an interactive user experience. The project combined applied machine learning with product thinking by turning model logic into a usable recommendation workflow.",
+        data_scientist: "This recommender uses user-user and item-item collaborative filtering with cosine similarity over a user-item rating matrix. I also handled cold-start scenarios with fallback logic and built the app so recommendations could be generated interactively in real time.",
+        hiring_manager: "The goal of this project was to turn recommendation logic into a working product experience instead of leaving it as a notebook exercise. I focused on both the model behavior and the usability layer so the system could actually be demonstrated end-to-end.",
+        pm: "I built this as a lightweight recommendation product where the model output directly improves user interaction. The value comes from translating preference signals into real-time suggestions while keeping the experience simple and engaging."
+      },
+      f1: {
+        recruiter: "I created an interactive F1 analytics experience using live race data APIs and deployed it on Vercel. The project demonstrates data storytelling, API integration, and the ability to turn sports telemetry into a polished analytical product.",
+        data_scientist: "This project combines structured racing data from external APIs to compare driver performance, race pace, qualifying results, and pit strategy. The main challenge was shaping multiple sources into an analysis flow that remained coherent and interactive.",
+        hiring_manager: "The F1 project was about productizing sports analytics into a live, explorable experience. I focused on how users would move through the analysis, not just on displaying data from APIs.",
+        pm: "I designed the F1 experience to make race analytics accessible and engaging for users by connecting performance comparisons, strategy views, and historical context. The value is in turning raw race data into a compelling exploration flow."
+      },
+      underarmour: {
+        recruiter: "I developed a strategy-focused analytics concept for Under Armour that connected business transformation ideas with data-driven execution. The work focused on how analytics could support product innovation, operational efficiency, and long-term growth.",
+        data_scientist: "This project framed strategic transformation through an analytics lens, identifying where data products and measurement systems could support athlete insights, sustainability, and connected experiences. The emphasis was on structured thinking rather than predictive modeling.",
+        hiring_manager: "I approached this as a business transformation exercise and translated broad strategic goals into actionable analytics opportunities. The project shows how I think about connecting vision, risk, and execution.",
+        pm: "The goal was to map strategic opportunities into tangible analytics-led experiences that could support both customer value and business growth. I focused on where data could create a stronger product and ecosystem story."
+      },
+      erm: {
+        recruiter: "I designed an enterprise risk management framework for a dairy manufacturing company, covering operational, regulatory, financial, and sustainability risks. The project shows how I can structure risk information into a practical governance model for business use.",
+        data_scientist: "This work focused on organizing multiple risk domains into a scoring and monitoring framework that stakeholders could actually use. The value was in structuring messy operational risk inputs into a clearer evaluation model.",
+        hiring_manager: "I treated this as a practical risk-operations problem and developed a lightweight framework that balanced completeness with usability. The output was meant to support repeatable decision-making rather than produce a static report.",
+        pm: "I structured this project around visibility and actionability, making sure risk categories, ownership, and follow-up could be understood clearly by decision-makers. The emphasis was on making governance usable."
+      },
+      petalpost: {
+        recruiter: "I designed a plant delivery database system using SQL and a structured backend approach for handling orders and inventory. The project demonstrates database design, operational thinking, and end-to-end system planning.",
+        data_scientist: "This project focused on relational database design, normalized entities, and backend logic for order and inventory flows. The emphasis was on data integrity, usability, and system structure rather than advanced modeling.",
+        hiring_manager: "I approached this as a systems design problem and built the data foundation needed for a transactional delivery platform. The project shows how I think through entity relationships, workflows, and operational constraints.",
+        pm: "The value of this project was in designing a clear system behind a delivery experience, where orders, inventory, and user interactions connect cleanly. I focused on structure and maintainability."
+      },
+      royaltease: {
+        recruiter: "I designed a digital rights and royalty management concept focused on automating usage tracking and payment logic. The project highlights structured systems thinking and business-process design.",
+        data_scientist: "This was a systems architecture project centered on clear data flows, royalty calculation logic, and traceable rights management. The emphasis was on workflow design and auditability.",
+        hiring_manager: "I framed this project around the challenge of making complex rights and payment processes more structured and reliable. The deliverable focused on process clarity and system design rather than just documentation.",
+        pm: "I approached this as a product and operations problem where stakeholders need transparency, automation, and trust in royalty workflows. The system design was intended to improve clarity and reliability."
+      },
+      energy: {
+        recruiter: "I worked on a predictive analytics project focused on household energy consumption using regression-based modeling techniques. The project demonstrates feature engineering, model comparison, and insight generation.",
+        data_scientist: "I compared modeling approaches such as CART and linear regression on household energy data, using engineered features from building and weather variables. The focus was on interpretable modeling and practical prediction quality.",
+        hiring_manager: "This project was about structuring a machine learning workflow from raw inputs through feature engineering and model comparison. I focused on selecting methods that balanced accuracy with interpretability.",
+        pm: "I treated this as a decision-support problem, using predictive modeling to surface patterns that could support energy efficiency recommendations. The project connects technical analysis with practical value."
+      },
+      streaming: {
+        recruiter: "I analyzed user behavior across Netflix and Amazon Prime using Python-based exploratory data analysis. The project helped uncover platform differences in demographics, engagement, and subscription patterns.",
+        data_scientist: "This EDA project involved standardizing two streaming datasets and comparing user behavior patterns across demographics, device engagement, and subscription trends. The focus was on extracting clean comparative insights from separate sources.",
+        hiring_manager: "I approached this as a comparative behavior analysis project and focused on building a reproducible workflow that made differences across platforms easy to interpret. The result was a clearer story around user behavior patterns.",
+        pm: "I used this project to explore how audience behavior differs across platforms and what those differences might imply for product positioning and engagement. The analysis was designed to support comparative understanding, not just descriptive reporting."
+      },
+      mindreading: {
+        recruiter: "This project explores how recommendation systems can infer user preferences from subtle behavioral signals and why that matters for responsible AI. It shows my interest in the intersection of analytics, product behavior, and governance.",
+        data_scientist: "I framed this work around the behavioral signals that modern recommendation systems can extract and the governance implications of those inferences. The emphasis was on analysis, interpretation, and responsible AI reasoning.",
+        hiring_manager: "I treated this project as a structured investigation into how platforms infer intent and how little transparency users often have into those systems. The output reflects my ability to connect technical systems with broader implications.",
+        pm: "The project focuses on how hidden recommendation logic shapes user experience and trust. I approached it from a product and governance perspective, asking how personalization can remain effective without becoming opaque."
+      }
+    };
+
+    let activeRole = null;
+    let activeProject = null;
+    const cache = {};
+
+    const roleRow = document.getElementById("roleRow");
+    const pgrid = document.getElementById("pgrid");
+    const resultEl = document.getElementById("result");
+    const hintEl = document.getElementById("hint");
+    const bodyEl = document.getElementById("rBody");
+    const fuEl = document.getElementById("followup");
+    const fuInput = document.getElementById("fuInput");
+    const fuBtn = document.getElementById("fuBtn");
+    const fuAnswers = document.getElementById("fuAnswers");
+    const fuChips = document.getElementById("fuChips");
+    const rMeta = document.getElementById("rMeta");
+    const rPersp = document.getElementById("rPersp");
+    const routerInput = document.getElementById("routerInput");
+    const routerBtn = document.getElementById("routerBtn");
+    const routerStatus = document.getElementById("routerStatus");
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function setRouterStatus(message, isError = false) {
+      routerStatus.innerHTML = isError
+        ? `<div class="err">${escapeHtml(message)}</div>`
+        : `<div class="router-note">${escapeHtml(message)}</div>`;
+    }
+
+    function clearProjectFilter() {
+      pgrid.querySelectorAll(".pcard").forEach((card) => {
+        card.classList.remove("project-hidden");
       });
     }
 
-    if (!googleRes.ok) {
-      return res.status(googleRes.status).json({
-        error: data?.error?.message || `Model error (${googleRes.status})`,
-        details: JSON.stringify(data).slice(0, 1200)
+    function filterProjectsByTag(tag) {
+      const needle = String(tag || "").trim().toLowerCase();
+      if (!needle) {
+        clearProjectFilter();
+        return 0;
+      }
+
+      let visibleCount = 0;
+
+      PROJECTS.forEach((project) => {
+        const card = pgrid.querySelector(`.pcard[data-id="${project.id}"]`);
+        if (!card) return;
+
+        const haystack = [
+          project.title,
+          project.blurb,
+          ...(project.tags || [])
+        ].join(" ").toLowerCase();
+
+        const matches = haystack.includes(needle);
+        card.classList.toggle("project-hidden", !matches);
+        if (matches) visibleCount += 1;
       });
+
+      return visibleCount;
     }
 
-    const modelText =
-      data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("\n") || "";
+    function resetExplainerUI() {
+      activeRole = null;
+      activeProject = null;
 
-    let answer = "";
-    try {
-      const parsed = JSON.parse(cleanJsonText(modelText));
-      answer = typeof parsed.answer === "string" ? parsed.answer.trim() : "";
-    } catch {
-      answer = "";
+      roleRow.querySelectorAll(".role-btn").forEach((b) => b.classList.remove("on"));
+      pgrid.querySelectorAll(".pcard").forEach((b) => b.classList.remove("on"));
+
+      document.getElementById("roleHint").textContent = "";
+      fuAnswers.innerHTML = "";
+      resultEl.classList.remove("show");
+      fuEl.classList.remove("show");
+      hintEl.style.display = "block";
+      hintEl.textContent = "Pick your role, then click a project.";
     }
 
-    if (!answer) {
-      return res.status(200).json({
-        answer: "I can’t answer that confidently from the saved project context."
+    function clickRoleById(roleId) {
+      const btn = roleRow.querySelector(`.role-btn[data-id="${roleId}"]`);
+      if (btn) btn.click();
+    }
+
+    function clickProjectById(projectId) {
+      const btn = pgrid.querySelector(`.pcard[data-id="${projectId}"]`);
+      if (btn) btn.click();
+    }
+
+    function openProjectLink(projectId) {
+      const href = PROJECT_LINKS[projectId];
+      if (!href) return false;
+      window.open(href, "_blank", "noopener,noreferrer");
+      return true;
+    }
+
+    function explainProject(projectId, roleId = "recruiter") {
+      clearProjectFilter();
+      clickRoleById(roleId);
+      clickProjectById(projectId);
+    }
+
+    async function postRouter(query) {
+      const res = await fetch("/api/router", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query })
       });
+
+      const raw = await res.text();
+
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        return {
+          ok: false,
+          error: "Backend returned non-JSON.",
+          details: raw
+        };
+      }
+
+      if (!res.ok) {
+        return {
+          ok: false,
+          error: data.error || "Router failed.",
+          details: data.details || ""
+        };
+      }
+
+      return {
+        ok: true,
+        data
+      };
     }
 
-    return res.status(200).json({
-      answer: shortenAnswer(answer)
+    async function postFollowup(projectId, role, question) {
+      const res = await fetch("/api/followup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ projectId, role, question })
+      });
+
+      const raw = await res.text();
+
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        return {
+          ok: false,
+          error: "Follow-up backend returned non-JSON."
+        };
+      }
+
+      if (!res.ok) {
+        return {
+          ok: false,
+          error: data.error || "Follow-up failed."
+        };
+      }
+
+      return {
+        ok: true,
+        answer: String(data.answer || "").trim()
+      };
+    }
+
+    ROLES.forEach((role) => {
+      const btn = document.createElement("button");
+      btn.className = "role-btn";
+      btn.type = "button";
+      btn.dataset.id = role.id;
+      btn.textContent = role.label;
+      btn.addEventListener("click", () => pickRole(role, btn));
+      roleRow.appendChild(btn);
     });
-  } catch (error) {
-    return res.status(500).json({
-      error: "Server error.",
-      details: String(error?.message || error)
+
+    PROJECTS.forEach((project) => {
+      const btn = document.createElement("button");
+      btn.className = "pcard";
+      btn.type = "button";
+      btn.dataset.id = project.id;
+
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = project.title;
+
+      const tags = document.createElement("div");
+      tags.className = "tags";
+
+      project.tags.forEach((tagText) => {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = tagText;
+        tags.appendChild(tag);
+      });
+
+      const blurb = document.createElement("div");
+      blurb.className = "blurb";
+      blurb.textContent = project.blurb;
+
+      btn.appendChild(name);
+      btn.appendChild(tags);
+      btn.appendChild(blurb);
+      btn.addEventListener("click", () => pickProject(project, btn));
+      pgrid.appendChild(btn);
     });
-  }
-};
+
+    function pickRole(role, btn) {
+      roleRow.querySelectorAll(".role-btn").forEach((b) => b.classList.remove("on"));
+      btn.classList.add("on");
+      activeRole = role.id;
+      document.getElementById("roleHint").textContent = role.hint;
+
+      if (activeProject) {
+        generate();
+      } else {
+        hintEl.textContent = "Now click a project.";
+        hintEl.style.display = "block";
+      }
+    }
+
+    function pickProject(project, btn) {
+      pgrid.querySelectorAll(".pcard").forEach((b) => b.classList.remove("on"));
+      btn.classList.add("on");
+      activeProject = project.id;
+      fuAnswers.innerHTML = "";
+
+      if (activeRole) {
+        generate();
+      } else {
+        hintEl.textContent = "Now pick your role above.";
+        hintEl.style.display = "block";
+      }
+    }
+
+    function generate() {
+      const key = `${activeProject}_${activeRole}`;
+      const proj = PROJECTS.find((p) => p.id === activeProject);
+
+      hintEl.style.display = "none";
+      resultEl.classList.add("show");
+      fuEl.classList.remove("show");
+
+      rMeta.textContent = proj.title;
+      rPersp.textContent = "Perspective: " + ROLES.find((r) => r.id === activeRole).label;
+
+      const projectCopy = EXPLAINER_COPY[activeProject];
+      const text =
+        cache[key] ||
+        projectCopy?.[activeRole] ||
+        "A tailored explanation for this project is not available yet.";
+
+      cache[key] = text;
+      bodyEl.textContent = text;
+      fuEl.classList.add("show");
+      resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function appendFollowupAnswer(question, answer, isError = false) {
+      const block = document.createElement("div");
+      block.className = "fu-answer";
+
+      const qEl = document.createElement("div");
+      qEl.className = "fu-q";
+      qEl.textContent = `"${question}"`;
+
+      const aEl = document.createElement("div");
+      aEl.className = "fu-a";
+      if (isError) aEl.classList.add("err");
+      aEl.textContent = answer;
+
+      block.appendChild(qEl);
+      block.appendChild(aEl);
+      fuAnswers.appendChild(block);
+      block.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    async function sendFollowup(prefilledQuestion = "") {
+      const q = (prefilledQuestion || fuInput.value || "").trim();
+
+      if (!activeProject || !activeRole) {
+        appendFollowupAnswer(
+          q || "Follow-up",
+          "Please select both a project and a role first.",
+          true
+        );
+        return;
+      }
+
+      if (!q) return;
+
+      fuBtn.disabled = true;
+      fuInput.value = "";
+
+      const loadingBlock = document.createElement("div");
+      loadingBlock.className = "fu-answer";
+
+      const qEl = document.createElement("div");
+      qEl.className = "fu-q";
+      qEl.textContent = `"${q}"`;
+
+      const aEl = document.createElement("div");
+      aEl.className = "fu-a fu-loading";
+      aEl.textContent = "Thinking through the project context...";
+
+      loadingBlock.appendChild(qEl);
+      loadingBlock.appendChild(aEl);
+      fuAnswers.appendChild(loadingBlock);
+
+      try {
+        const result = await postFollowup(activeProject, activeRole, q);
+
+        if (!result.ok) {
+          aEl.classList.remove("fu-loading");
+          aEl.classList.add("err");
+          aEl.textContent = result.error || "Could not generate a follow-up answer.";
+        } else {
+          aEl.classList.remove("fu-loading");
+          aEl.textContent =
+            result.answer || "I can’t answer that confidently from the saved project context.";
+        }
+      } catch (error) {
+        aEl.classList.remove("fu-loading");
+        aEl.classList.add("err");
+        aEl.textContent = "Something went wrong while generating the follow-up.";
+      }
+
+      fuBtn.disabled = false;
+      loadingBlock.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    fuBtn.addEventListener("click", () => sendFollowup());
+    fuInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendFollowup();
+    });
+
+    fuChips?.querySelectorAll(".fu-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const q = chip.dataset.q || "";
+        fuInput.value = q;
+        sendFollowup(q);
+      });
+    });
+
+    async function runRouter() {
+      const query = routerInput.value.trim();
+      if (!query) return;
+
+      routerBtn.disabled = true;
+      setRouterStatus("Routing with Gemma...");
+
+      try {
+        const result = await postRouter(query);
+
+        if (!result.ok) {
+          setRouterStatus(result.error, true);
+          routerBtn.disabled = false;
+          return;
+        }
+
+        const data = result.data;
+        const action = data.action;
+
+        if (action === "open_resume") {
+          window.open("assets/Suriya_Narayanan_Resume.pdf", "_blank", "noopener,noreferrer");
+          setRouterStatus("Opened resume.");
+        } else if (action === "open_external") {
+          const target = data.target || data.external || data.tag || "";
+          const key = String(target || "").toLowerCase();
+          const href = EXTERNAL_LINKS[key];
+          if (href) {
+            window.open(href, "_blank", "noopener,noreferrer");
+            setRouterStatus(`Opened ${key}.`);
+          } else {
+            setRouterStatus(`I don't have a link for "${target}".`, true);
+          }
+        } else if (action === "open_section") {
+          const section = data.section || "";
+          const sec = String(section || "").toLowerCase();
+          if (!sec) {
+            setRouterStatus("No section specified.", true);
+          } else {
+            window.location.href = `index.html#${sec}`;
+            setRouterStatus(`Opening ${sec} on the main site.`);
+          }
+        } else if (action === "filter_projects") {
+          resetExplainerUI();
+          const count = filterProjectsByTag(data.tag);
+
+          setRouterStatus(
+            count > 0
+              ? `Showing ${count} project(s) related to "${data.tag}". Scroll down to explore them.`
+              : `I could not find a strong project match for "${data.tag}".`
+          );
+
+          document.querySelector(".projects")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        } else if (action === "explain_project") {
+          explainProject(data.projectId, data.role || "recruiter");
+          setRouterStatus(
+            `Selected ${data.projectId} and opened the explainer${data.role ? ` for ${data.role.replace("_", " ")}` : ""}.`
+          );
+        } else if (action === "open_project_link") {
+          const opened = openProjectLink(data.projectId);
+          if (!opened) {
+            explainProject(data.projectId, "recruiter");
+            setRouterStatus(`No direct link was mapped, so I opened the explainer for ${data.projectId}.`);
+          } else {
+            setRouterStatus(`Opened ${data.projectId}.`);
+          }
+        } else {
+          setRouterStatus(
+            `I couldn't map that cleanly. Try "show Tableau work", "open GitHub", "open LinkedIn", "show certifications", or "explain the airline project for a recruiter".`,
+            true
+          );
+        }
+      } catch (error) {
+        setRouterStatus(`Request failed: ${String(error?.message || error)}`, true);
+      }
+
+      routerBtn.disabled = false;
+    }
+
+    routerBtn.addEventListener("click", runRouter);
+    routerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") runRouter();
+    });
+  </script>
+</body>
+</html>
